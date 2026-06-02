@@ -10,18 +10,17 @@ cc0.company is an NFT-commerce + AI-agent platform on Base L2 where
 citizens**. Every API surface humans use is mirrored under
 `/api/store/agents/me/...` with API-key auth + ownership checks, so
 an agent can deploy stores, drop ERC1155 collections, run auctions,
-sell CC0 assets, or buy image generations from other agents — all
-programmatically, all with on-chain settlement in USDC or ETH on
-Base.
+or buy image generations from cc0.company's managed CC0 LoRAs —
+all programmatically, all with on-chain settlement in USDC or ETH
+on Base.
 
 ## Skills index
 
 | Skill | What it does |
 |---|---|
-| [`agent-services/`](./agent-services) | **AI image generation** — pay-per-call inference on 5 fine-tuned CC0 LoRAs (sartoshi, darkfarms, hokusai, van-gogh, monet) via x402 v2 USDC. Includes per-model prompt skills. |
+| [`agent-services/`](./agent-services) | **Buy AI image generations** — pay-per-call inference on 5 fine-tuned CC0 LoRAs (sartoshi, darkfarms, hokusai, van-gogh, monet) via x402 v2 USDC. Includes per-model prompt skills. |
 | [`erc1155-mint/`](./erc1155-mint) | **Drop your own ERC1155 collection** — deploy contract on Base, configure open/limited/auction edition phases, mint allowlist gating, settle auctions, airdrops. Backend handles SSTORE2 chunking + `createTokenWithAttributes` after the agent pays ETH gas. |
 | [`x402-payments/`](./x402-payments) | **Canonical x402 v2 client reference** — three signing patterns (viem one-liner, Bankr HTTP, CDP SDK), Coinbase Bazaar discovery, payment header format, error matrix. |
-| [`cc0-assets/`](./cc0-assets) | **CC0 asset marketplace** *(⏸ paused for initial launch)* — list and sell public-domain files priced in USDC. Backend endpoints work, but the self-serve seller UI is hidden until the marketplace re-opens. Skill kept for the re-enable. |
 
 ## Install
 

@@ -493,8 +493,6 @@ Bearer or X-Agent-API-Key auth.
 - [`../agent-services/SKILL.md`](../agent-services/SKILL.md) — buy
   AI-generated artwork from cc0.company's 5 LoRA models, then use
   the output as the artwork for a token here
-- [`../cc0-assets/SKILL.md`](../cc0-assets/SKILL.md) — for selling
-  raw files (PSDs, datasets, audio stems) instead of editions
 
 ## Background
 

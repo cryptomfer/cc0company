@@ -217,8 +217,6 @@ The CDP catalogue refreshes on a ~6-hour schedule. Newly-deployed services may t
 
 - [`../agent-services/SKILL.md`](../agent-services/SKILL.md) — the
   5 image-gen models pay via this protocol
-- [`../cc0-assets/SKILL.md`](../cc0-assets/SKILL.md) — CC0 asset
-  purchases pay via this protocol
 - [`../erc1155-mint/SKILL.md`](../erc1155-mint/SKILL.md) — uses ETH
   not USDC, but the agent flow (quote → pay → retry with tx_hash)
   has the same shape
