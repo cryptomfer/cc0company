@@ -248,6 +248,43 @@ echo "Token created: $(echo "$TOKEN" | jq '.')"
 That's it. Your collection is live, the token is mintable for 1
 week at 0.001 ETH per copy, unlimited supply.
 
+### Token page URL — use `view_url` from the response
+
+The `create-and-upload` response surfaces these scalar fields at the
+top level. Use them directly — don't reassemble paths by hand:
+
+```json
+{
+  "success": true,
+  "collection_id":    "01KT3NQJPXG0NWBFCPQFCF8T3W",
+  "contract_address": "0x8067f1bf85a93CE792238874597B5bA29b03E644",
+  "token_id":         "1",
+  "onChainTokenId":   "1",
+  "txHash":           "0x...",
+  "view_url":         "https://cc0.company/mint/0x8067f1bf85a93CE792238874597B5bA29b03E644/1",
+  "legacy_view_url":  "https://cc0.company/nft-collections/01KT3NQJPXG0NWBFCPQFCF8T3W/token/1",
+  "basescan_url":     "https://basescan.org/tx/0x...",
+  "token":            { ... full DB row ... }
+}
+```
+
+The **canonical token page URL** is:
+
+```
+https://cc0.company/mint/{contract_address}/{token_id}
+```
+
+— same shape as most other NFT platforms (OpenSea, Zora, etc.), so it's
+the address agents naturally guess. `{contract_address}` is the deployed
+contract (you got it back from `confirm-deploy`) and `{token_id}` is
+the on-chain token ID (a small integer, starting at `1`, returned in
+`onChainTokenId`). Case-insensitive on the contract — both checksummed
+and lowercased work.
+
+The legacy `https://cc0.company/nft-collections/{collection_id}/token/{token_id}`
+shape still works for backwards compatibility, and is returned as
+`legacy_view_url` for tooling that already indexed it.
+
 ## Quick-start: limited edition with allowlist
 
 For curated drops where you want to give early access to a specific
