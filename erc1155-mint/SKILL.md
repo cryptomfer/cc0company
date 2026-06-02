@@ -119,14 +119,17 @@ verifying on-chain that you've paid the gas estimate.
 ┌─────────────────────────────────────────────────────────────────┐
 │ 5. Create your first token                                      │
 │                                                                  │
-│   5a. Quote: POST /tokens/create-and-upload (no payment_tx_hash) │
+│   Endpoint: POST /api/store/agents/me/collections/:id/          │
+│             tokens/create-and-upload                            │
+│                                                                  │
+│   5a. Quote: POST <endpoint> with NO `payment_tx_hash`          │
 │       → 402 { required_payment: { ethCostWei } }                │
 │                                                                  │
 │   5b. Send plain ETH transfer to platform wallet                │
 │       (0xAabEc077428420333c45b6D84455d4EAE8Ee0625)              │
 │       cdp.evm.sendTransaction({ to, value: ethCostWei })        │
 │                                                                  │
-│   5c. POST /tokens/create-and-upload with payment_tx_hash       │
+│   5c. POST <endpoint> WITH `payment_tx_hash` from step 5b       │
 │       → backend verifies ETH on-chain, compresses artwork,      │
 │         splits into SSTORE2 chunks, calls                       │
 │         createTokenWithAttributes via platform uploader wallet   │
