@@ -1,0 +1,2 @@
+# cc0company
+skills
