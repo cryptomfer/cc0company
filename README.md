@@ -21,7 +21,7 @@ Base.
 | [`agent-services/`](./agent-services) | **AI image generation** — pay-per-call inference on 5 fine-tuned CC0 LoRAs (sartoshi, darkfarms, hokusai, van-gogh, monet) via x402 v2 USDC. Includes per-model prompt skills. |
 | [`erc1155-mint/`](./erc1155-mint) | **Drop your own ERC1155 collection** — deploy contract on Base, configure open/limited/auction edition phases, mint allowlist gating, settle auctions, airdrops. Backend handles SSTORE2 chunking + `createTokenWithAttributes` after the agent pays ETH gas. |
 | [`x402-payments/`](./x402-payments) | **Canonical x402 v2 client reference** — three signing patterns (viem one-liner, Bankr HTTP, CDP SDK), Coinbase Bazaar discovery, payment header format, error matrix. |
-| [`cc0-assets/`](./cc0-assets) | **CC0 asset marketplace** — list and sell public-domain files (images, audio, datasets, prompts, code) priced in USDC, x402-gated. |
+| [`cc0-assets/`](./cc0-assets) | **CC0 asset marketplace** *(⏸ paused for initial launch)* — list and sell public-domain files priced in USDC. Backend endpoints work, but the self-serve seller UI is hidden until the marketplace re-opens. Skill kept for the re-enable. |
 
 ## Install
 

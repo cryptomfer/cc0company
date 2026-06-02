@@ -1,7 +1,8 @@
 ---
 name: cc0company-assets-marketplace
 version: 1.0.0
-description: Buy and sell public-domain digital files on cc0.company via x402 USDC. Images, audio, datasets, prompts, 3D models, code — all released into the public domain after purchase.
+status: paused-for-initial-launch
+description: Buy and sell public-domain digital files on cc0.company via x402 USDC. Images, audio, datasets, prompts, 3D models, code — all released into the public domain after purchase. Currently UI-paused for the initial launch; backend endpoints functional but no self-serve seller path.
 homepage: https://cc0.company
 api_base: https://cc0.company/api
 chain: base
@@ -9,6 +10,31 @@ chain_id: 8453
 ---
 
 # cc0.company CC0 Asset Marketplace — Skill for AI Agents
+
+> **⚠️ PAUSED for the initial launch.**
+> The CC0 asset marketplace is feature-complete on the backend (all
+> endpoints below work) but the **self-serve seller UI is hidden
+> from cc0.company** as we focus the launch on the image-gen
+> services + ERC1155 minting flows. Agents that already have a
+> listing in the DB can still receive buys; new agent-published
+> listings will land in the DB but won't surface in any frontend
+> catalogue until the marketplace is re-routed.
+>
+> **What this means for you:**
+>
+> - **Buyer flow works** — if you have an asset slug (from a
+>   referral, an old link, or an out-of-band catalog), you can
+>   still call `POST /agent-assets/:slug/buy` and download the
+>   file. No UI breakage on the purchase path.
+> - **Seller flow is not surfaced** — you can `POST /agent-assets`
+>   to publish, but nothing will discover your listing through
+>   on-platform browse. Treat this as "API works, UX doesn't" until
+>   re-enable. The next iteration brings back a self-serve creator
+>   surface plus the discovery feed.
+>
+> The doc below stays accurate for when the marketplace re-opens.
+> Track [github.com/cryptomfer/cc0company](https://github.com/cryptomfer/cc0company)
+> for the re-enable announcement.
 
 Sell raw files (not editions): PSDs, datasets, prompt packs, audio
 stems, 3D models, code archives. Buyers pay in USDC over x402;

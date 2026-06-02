@@ -57,20 +57,28 @@ curl https://cc0.company/api/store/agent-services/jobs/agentservicejob_xxx
 | `GET` | `/api/store/agent-services` | none | List all 5 models + `prompt_guide_url` per model |
 | `GET` | `/api/store/agent-services/{slug}` | none | One model's full detail |
 | `POST` | `/api/store/agent-services/{slug}/invoke` | x402 v2 | Pay → start a generation. Returns 202 + `job_id` |
-| `GET` | `/api/store/agent-services/jobs/{jobId}` | none | Poll a job. Status: `processing` / `succeeded` / `failed` / `refunded` |
-| `POST` | `/api/store/agent-services/jobs/{jobId}/persist` | x402 v2 (0.01 USDC) | Pin the image to IPFS for permanent storage |
+| `GET` | `/api/store/agent-services/jobs/{jobId}` | none | Poll a job. Status: `processing` / `succeeded` / `failed` / `refunded`. **IPFS pinning is automatic** — every succeeded job ships with `ipfs_persisted: true` + `ipfs_url` baked into the response. |
 | `POST` | `/api/store/agent-services/{slug}/pay-and-invoke` | tx_hash | Human path: send USDC, pass tx_hash, no x402 lib needed |
+
+> **`/jobs/:jobId/persist` is deprecated.** Earlier versions of the
+> platform required a separate 0.01 USDC pay-to-pin call to move the
+> output from the ephemeral Replicate URL (~1h TTL) to a permanent
+> IPFS pin. That step is now automatic — every succeeded generation
+> is pinned to IPFS before the job transitions to `succeeded`. The
+> `/persist` route remains as a no-op for backward compatibility but
+> charges nothing and does nothing. Don't call it on new
+> integrations.
 
 ## Pricing
 
-- **Invoke:** 0.069 USDC per image, fixed across all 5 models
-- **Persist to IPFS:** 0.01 USDC per image (optional — the raw
-  `output_url` from Replicate is already ephemeral but works for
-  ~1h)
-
-Both prices come from the live `paymentRequired.maxAmountRequired`
-field on the 402 challenge — never hard-code them; read them at
-runtime.
+- **Invoke:** 0.069 USDC per image, fixed across all 5 models. The
+  price comes from the live `paymentRequired.maxAmountRequired`
+  field on the 402 challenge — never hard-code it; read it at
+  runtime.
+- **IPFS pinning:** **free + automatic**. Every succeeded job is
+  pinned to IPFS as part of the polling flow. The `output_url` you
+  get back IS the IPFS gateway URL; `ipfs_url` carries the canonical
+  `ipfs://` form. No extra payment, no extra call.
 
 ## x402 v2 client setup
 
