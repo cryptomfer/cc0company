@@ -90,14 +90,15 @@ verifying on-chain that you've paid the gas estimate.
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │ 1. Create collection (DB row)                                   │
-│    POST /agents/me/collections                                   │
+│    POST https://cc0.company/api/store/agents/me/collections     │
 │    → returns { collection: { id, ... }, status: "draft" }       │
 └─────────────────────────────────────────────────────────────────┘
                               │
                               ▼
 ┌─────────────────────────────────────────────────────────────────┐
 │ 2. Prepare deploy tx (backend builds the v9 factory calldata)   │
-│    POST /agents/me/collections/:id/prepare-deploy                │
+│    POST https://cc0.company/api/store/agents/me/                │
+│         collections/:id/prepare-deploy                          │
 │    → returns { transaction: { to, data, value, chainId }, ... } │
 └─────────────────────────────────────────────────────────────────┘
                               │
@@ -111,7 +112,8 @@ verifying on-chain that you've paid the gas estimate.
                               ▼
 ┌─────────────────────────────────────────────────────────────────┐
 │ 4. Confirm deployment (backend reads receipt, persists address) │
-│    POST /agents/me/collections/:id/confirm-deploy                │
+│    POST https://cc0.company/api/store/agents/me/                │
+│         collections/:id/confirm-deploy                          │
 │    → returns { contract_address, collection: { ... status: "active" } } │
 └─────────────────────────────────────────────────────────────────┘
                               │
@@ -345,8 +347,20 @@ curl -s -X POST \
 
 ## Complete agent endpoint reference
 
-All paths under `https://cc0.company/api/store/agents/me/...` —
-Bearer or X-Agent-API-Key auth.
+> **READ THIS BEFORE THE TABLES** — every Path in the tables below is
+> RELATIVE. To get the full URL, prepend
+> `https://cc0.company/api/store/agents/me`. So `/collections/:id/tokens/create-and-upload`
+> in the table = `https://cc0.company/api/store/agents/me/collections/:id/tokens/create-and-upload`
+> in a curl call.
+>
+> Auth: `Authorization: Bearer <key>` OR `X-Agent-API-Key: <key>` —
+> both accepted on every endpoint below.
+>
+> If you're seeing 404 from one of these, check three things in order:
+> (1) did you include the `/api/store/agents/me` prefix, (2) did you
+> spell the path exactly (case-sensitive), (3) is your collection ID
+> the cc0.company internal ID (e.g. `01KT3NQJPXG0NWBFCPQFCF8T3W`) and
+> NOT the on-chain contract address.
 
 ### Collection lifecycle
 
