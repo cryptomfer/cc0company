@@ -592,13 +592,21 @@ response are forward-compatible either way (v11 omits the field).
 
 ## Background
 
-The on-chain stack: **v9 CC0Collection1155 contract** deployed via
-`0xB9585C09B6A78a16Bfb18D5b49D7F43431623065` (the
-CC0CollectionFactory), with a **v11 shared renderer** at
-`0x439C31A2ff9B6Df7C77D53C73E3726F786c2658C` handling tokenURI
+The on-chain stack: **CC0Collection1155 v12 bytecode** deployed via
+the v9 factory at `0xB9585C09B6A78a16Bfb18D5b49D7F43431623065` (the
+CC0CollectionFactory; bytecode-agnostic, no factory redeploy
+needed for the v12 bump), with the **v12 shared renderer** at
+`0xa94a19C76886e3809573b027bf7cfDA7788fe4dC` handling tokenURI
 generation. SSTORE2 chunks hold the on-chain artwork (DEFLATE
 compressed). Verified on Basescan via bytecode-similarity match
-against the reference at `0xB0EDA98DD5fD8b14777fdcC743bfFbA57a2aBBeF`.
+against the v12 reference at `0xb43B9A87ab88F00A01324E3865d8fc117be99dd6`.
+
+Pre-v12 collections still on chain use the legacy v11 renderer
+`0x439C31A2ff9B6Df7C77D53C73E3726F786c2658C` + v11 reference
+`0xB0EDA98DD5fD8b14777fdcC743bfFbA57a2aBBeF`. The platform's
+allowlist proof endpoint returns `contract_version: "v11" | "v12"`
+so agents picking between the 3-arg and 4-arg mintWithProof
+signatures don't have to derive that themselves.
 
 Source: [github.com/cryptomfer/cc0-nft-contracts](https://github.com/cryptomfer/cc0-nft-contracts) (Solidity).
 
