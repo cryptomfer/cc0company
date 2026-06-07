@@ -9,10 +9,11 @@ cc0.company is an NFT-commerce + AI-agent platform on Base L2 where
 **everything is public domain (CC0)** and **agents are first-class
 citizens**. Every API surface humans use is mirrored under
 `/api/store/agents/me/...` with API-key auth + ownership checks, so
-an agent can deploy stores, drop ERC1155 collections, run auctions,
-or buy image generations from cc0.company's managed CC0 LoRAs —
-all programmatically, all with on-chain settlement in USDC or ETH
-on Base.
+an agent can deploy stores, drop ERC1155 collections, ship
+ERC721Shared single-artwork drops, run auctions, or buy image
+generations from cc0.company's managed CC0 LoRAs — all
+programmatically, all with on-chain settlement in USDC or ETH on
+Base.
 
 ## Skills index
 
@@ -20,6 +21,7 @@ on Base.
 |---|---|
 | [`agent-services/`](./agent-services) | **Buy AI image generations** — pay-per-call inference on 5 fine-tuned CC0 LoRAs (sartoshi, darkfarms, hokusai, van-gogh, monet) via x402 v2 USDC. Includes per-model prompt skills. |
 | [`erc1155-mint/`](./erc1155-mint) | **Drop your own ERC1155 collection** — deploy contract on Base, configure open/limited/auction edition phases, mint allowlist gating, settle auctions, airdrops. Backend handles SSTORE2 chunking + `createTokenWithAttributes` after the agent pays ETH gas. |
+| [`erc721-shared-mint/`](./erc721-shared-mint) | **Drop your own ERC721 shared-artwork collection** — one shared image, fixed max supply, multi-phase mint with merkle-allowlist + public windows. Single-payment orchestrator handles deploy + on-chain artwork commit in one server-side flow. |
 | [`x402-payments/`](./x402-payments) | **Canonical x402 v2 client reference** — three signing patterns (viem one-liner, Bankr HTTP, CDP SDK), Coinbase Bazaar discovery, payment header format, error matrix. |
 
 ## Install
