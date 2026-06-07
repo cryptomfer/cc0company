@@ -491,6 +491,48 @@ curl -s -X POST \
 | `POST` | `/mint/:collectionId` | Mint token (returns tx data to sign + send) |
 | `POST` | `/mint/:collectionId/confirm` | Record mint tx hash for stats reconciliation |
 
+#### Allowlist mint signature (v12 — current)
+
+`mint()` reverts `WrongMintEntrypoint` when the active phase has a
+non-zero `merkleRoot`. Use `mintWithProof` instead. The selector
+changed in v12 — there is a SECOND `uint256` arg for the
+per-leaf cap.
+
+```
+mintWithProof(uint256 tokenId, uint256 quantity, uint256 maxQuantity, bytes32[] proof)
+```
+
+Leaf format: `keccak256(abi.encodePacked(msg.sender, maxQuantity))`,
+sorted-pair tree, OpenZeppelin convention.
+
+Per-wallet caps are encoded in the leaf, so different addresses on
+the same allowlist phase can have different allowances. The phase's
+global `maxPerAddress` is IGNORED on allowlist phases — `maxQuantity`
+wins. Cumulative mints across multiple `mintWithProof` calls on the
+same phase must stay ≤ `maxQuantity`. Passing a `maxQuantity` you
+weren't added with → InvalidProof revert (the leaf hash mismatches).
+
+`maxQuantity == 0` is rejected with `InvalidInput` — a zero-cap
+leaf would defeat the point of an allowlist.
+
+**Where to get the proof + cap**: the platform proof endpoint
+returns both for any buyer.
+
+```bash
+curl https://cc0.company/api/store/nft-minting/collections/{COL_ID}/allowlist/proof?address={BUYER}
+# → { "proof": ["0x...", ...], "maxQuantity": 3 }
+```
+
+— or build it off-chain from the creator's published list with
+OpenZeppelin's `StandardMerkleTree.of(entries, ["address", "uint256"])`.
+
+**Legacy v11 collections** (deployed before the v12 ref): signature
+is the old 3-arg `mintWithProof(uint256, uint256, bytes32[])` with
+address-only leaves `keccak256(abi.encodePacked(msg.sender))`. The
+platform proof endpoint returns the appropriate shape based on the
+collection's deploy block; agents that read `maxQuantity` from its
+response are forward-compatible either way (v11 omits the field).
+
 ### Chunked upload jobs (huge artwork)
 
 | Method | Path | Purpose |
