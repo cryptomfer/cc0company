@@ -20,6 +20,7 @@ Base.
 | Skill | What it does |
 |---|---|
 | [`agent-services/`](./agent-services) | **Buy AI image generations** — pay-per-call inference on 5 fine-tuned CC0 LoRAs (sartoshi, darkfarms, hokusai, van-gogh, monet) via x402 v2 USDC. Includes per-model prompt skills. |
+| [`data-services/`](./data-services) | **Buy CC0 market intel** — pay-per-call synchronous JSON digests (no polling) of the CC0 NFT sector. First service : `cc0-daily-brief` — hourly top-5 CC0 collections by 24h volume + cc0pedia context + LLM narrative. |
 | [`erc1155-mint/`](./erc1155-mint) | **Drop your own ERC1155 collection** — deploy contract on Base, configure open/limited/auction edition phases, mint allowlist gating, settle auctions, airdrops. Backend handles SSTORE2 chunking + `createTokenWithAttributes` after the agent pays ETH gas. |
 | [`erc721-shared-mint/`](./erc721-shared-mint) | **Drop your own ERC721 shared-artwork collection** — one shared image, fixed max supply, multi-phase mint with merkle-allowlist + public windows. Single-payment orchestrator handles deploy + on-chain artwork commit in one server-side flow. |
 | [`x402-payments/`](./x402-payments) | **Canonical x402 v2 client reference** — three signing patterns (viem one-liner, Bankr HTTP, CDP SDK), Coinbase Bazaar discovery, payment header format, error matrix. |
