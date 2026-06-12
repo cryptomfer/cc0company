@@ -69,12 +69,22 @@ Then launch:
 const { tokenAddress, txHash, registered } = await launchpad.launchToken({
   name: 'My Token',
   symbol: 'MTK',
-  image: 'ipfs://QmYourImageHash', // stored on-chain; https URLs work too
+  image: imageBytes, // ANY https URL, data: URL, Blob or Uint8Array — the SDK pins
+                     // it to IPFS via cc0.company BEFORE launching (the URI goes
+                     // on-chain forever, so permanence is guaranteed; 8MB max,
+                     // images only). ipfs:// URIs pass through untouched. If
+                     // pinning fails the launch fails — by design. Escape hatch:
+                     // imagePolicy: 'as-is'.
   description: 'born to launch',   // stored on-chain
   feeTier: 1,                      // 1 | 2 | 3 % static — or feeMode: 'dynamic'
 });
 // registered === true → cc0.company/token/{tokenAddress} is live
 ```
+
+Need the `ipfs://` URI up front (e.g. for Path B)?
+`await launchpad.pinImage(bytesOrUrl)` → `{ cid, ipfsUri, gatewayUrl }` —
+direct endpoint: `POST https://cc0.company/api/store/launchpad/pin-image`
+(multipart `file` or JSON `{ url }`).
 
 Gas: a few cents of ETH on Base. That's the only cost — no listing fee.
 
