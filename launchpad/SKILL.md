@@ -97,15 +97,21 @@ const launchpad = new Cc0Launchpad({
   sender: {
     address: account.address,
     send: async (tx) => {
-      // tx.json = BigInt-free hex mirror { to, data, value, gas, chainId } —
-      // pass it straight to JSON transports. Add EIP-1559 fee fields if your
-      // CDP version requires them; the gas limit is already estimated.
+      // tx.json = complete JSON-safe EIP-1559 tx: to, data, value, gas,
+      // maxFeePerGas, maxPriorityFeePerGas — all hex, all pre-estimated.
       const { transactionHash } = await cdp.evm.sendTransaction({
         address: account.address,
         network: 'base',
-        transaction: { to: tx.json.to, data: tx.json.data, value: tx.json.value, gas: tx.json.gas },
+        transaction: {
+          to: tx.json.to,
+          data: tx.json.data,
+          value: tx.json.value,
+          gas: tx.json.gas,
+          maxFeePerGas: tx.json.maxFeePerGas,
+          maxPriorityFeePerGas: tx.json.maxPriorityFeePerGas,
+        },
       });
-      return transactionHash;
+      return transactionHash; // CDP's field is `transactionHash`, NOT `hash`
     },
   },
 });
