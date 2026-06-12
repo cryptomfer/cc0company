@@ -44,23 +44,14 @@ npm install @cc0company/sdk viem
 
 Source: [github.com/cryptomfer/cc0company-sdk](https://github.com/cryptomfer/cc0company-sdk) (CC0-1.0).
 
-## Path A — you control a wallet (viem / private key / Coinbase CDP)
-
-The SDK accepts a viem `walletClient` OR any viem `account`:
+## Path A — viem-compatible signer (walletClient or private key)
 
 ```typescript
 import { Cc0Launchpad } from '@cc0company/sdk';
-
-// Private key (server agent)
 import { privateKeyToAccount } from 'viem/accounts';
-const launchpad = new Cc0Launchpad({ account: privateKeyToAccount(process.env.PK) });
 
-// Coinbase CDP server wallet — CDP ships a viem adapter, use it:
-import { CdpClient } from '@coinbase/cdp-sdk';
-import { toAccount } from '@coinbase/cdp-sdk/viem';
-const cdp = new CdpClient();
-const cdpAccount = await cdp.evm.getOrCreateAccount({ name: 'launcher' });
-const launchpad = new Cc0Launchpad({ account: toAccount(cdpAccount) });
+const launchpad = new Cc0Launchpad({ account: privateKeyToAccount(process.env.PK) });
+// or { walletClient } for browser wallets (MetaMask, Rabby, …)
 ```
 
 Then launch:
@@ -88,37 +79,43 @@ direct endpoint: `POST https://cc0.company/api/store/launchpad/pin-image`
 
 Gas: a few cents of ETH on Base. That's the only cost — no listing fee.
 
-## Path B — keyless infra (Bankr submit, Safe, any external signer)
+## Path B — ANY other wallet infra (Coinbase CDP, Bankr, Safe, relayers)
 
-If your signer never exposes keys, build the unsigned transaction and submit
-it yourself:
+CDP accounts are NOT viem-compatible (no `toAccount` adapter exists in
+`@coinbase/cdp-sdk`) — give the SDK a `sender` instead. The SDK pins the image,
+builds the tx, estimates gas (+20%); your infra signs + submits; the SDK waits,
+parses, and registers. ALL SDK methods (launch, claim fees, stake) work through it.
 
 ```typescript
-import { Cc0Launchpad, parseLaunchReceipt } from '@cc0company/sdk';
+import { CdpClient } from '@coinbase/cdp-sdk';
+import { Cc0Launchpad } from '@cc0company/sdk';
 
-const launchpad = new Cc0Launchpad(); // no wallet needed
+const cdp = new CdpClient();
+const account = await cdp.evm.getOrCreateAccount({ name: 'launcher' });
 
-// 1. Unsigned tx — `creator` MUST be the address that will send it
-const tx = await launchpad.prepareLaunchTransaction(
-  { name: 'My Token', symbol: 'MTK', image: 'ipfs://…', feeTier: 1 },
-  { creator: '0xYourSenderAddress' },
-);
-// → { to, data, value, chainId } — submit via Bankr /agent/submit, a Safe,
-//   eth_sendTransaction, anything that can send a raw transaction on Base.
-
-// 2. After it lands, extract the token address from the receipt
-const tokenAddress = parseLaunchReceipt(receipt);
-
-// 3. Register it (Path A does this automatically; here you call it)
-await launchpad.registerLaunch({
-  tokenAddress,
-  txHash: receipt.transactionHash,
-  name: 'My Token',
-  symbol: 'MTK',
-  image: 'ipfs://…',
-  creator: '0xYourSenderAddress',
+const launchpad = new Cc0Launchpad({
+  sender: {
+    address: account.address,
+    send: async (tx) => {
+      // tx.json = BigInt-free hex mirror { to, data, value, gas, chainId } —
+      // pass it straight to JSON transports. Add EIP-1559 fee fields if your
+      // CDP version requires them; the gas limit is already estimated.
+      const { transactionHash } = await cdp.evm.sendTransaction({
+        address: account.address,
+        network: 'base',
+        transaction: { to: tx.json.to, data: tx.json.data, value: tx.json.value, gas: tx.json.gas },
+      });
+      return transactionHash;
+    },
+  },
 });
+
+await launchpad.launchToken({ ... }); // everything handled end-to-end
 ```
+
+Fully manual (no sender): `prepareLaunchTransaction(params, { creator })` →
+submit `tx.json` yourself → `finishLaunch({ txHash, params, creator, imageUri: tx.imageUri })`
+waits + parses + registers in one call.
 
 ## All launch options
 
