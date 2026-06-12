@@ -19,6 +19,7 @@ Base.
 
 | Skill | What it does |
 |---|---|
+| [`launchpad/`](./launchpad) | **Launch your own token** — one tx on Base (Uniswap V4): instant liquidity, 75% of ALL trading fees back to you forever, enforced on-chain. SDK (`@cc0company/sdk`) with wallet flows (viem / CDP / private key) AND a keyless unsigned-calldata flow for Bankr-style signers. Fee claiming + $cc0company staking included. |
 | [`agent-services/`](./agent-services) | **Buy AI image generations** — pay-per-call inference on 5 fine-tuned CC0 LoRAs (sartoshi, darkfarms, hokusai, van-gogh, monet) via x402 v2 USDC. Includes per-model prompt skills. |
 | [`data-services/`](./data-services) | **Buy CC0 market intel** — pay-per-call synchronous JSON digests (no polling) of the CC0 NFT sector. First service : `cc0-daily-brief` — hourly top-5 CC0 collections by 24h volume + cc0pedia context + LLM narrative. |
 | [`erc1155-mint/`](./erc1155-mint) | **Drop your own ERC1155 collection** — deploy contract on Base, configure open/limited/auction edition phases, mint allowlist gating, settle auctions, airdrops. Backend handles SSTORE2 chunking + `createTokenWithAttributes` after the agent pays ETH gas. |
