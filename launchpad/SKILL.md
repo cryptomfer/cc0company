@@ -97,18 +97,19 @@ const launchpad = new Cc0Launchpad({
   sender: {
     address: account.address,
     send: async (tx) => {
-      // tx.json = complete JSON-safe EIP-1559 tx: to, data, value, gas,
-      // maxFeePerGas, maxPriorityFeePerGas — all hex, all pre-estimated.
+      // CDP's TypeScript SDK wants the BIGINT fields (tx.*) — hex fee strings
+      // throw TipAboveFeeCapError. Everything is pre-estimated by the SDK.
+      // (tx.json — the hex mirror — is for RAW JSON transports/relayers only.)
       const { transactionHash } = await cdp.evm.sendTransaction({
         address: account.address,
         network: 'base',
         transaction: {
-          to: tx.json.to,
-          data: tx.json.data,
-          value: tx.json.value,
-          gas: tx.json.gas,
-          maxFeePerGas: tx.json.maxFeePerGas,
-          maxPriorityFeePerGas: tx.json.maxPriorityFeePerGas,
+          to: tx.to,
+          data: tx.data,
+          value: tx.value,
+          gas: tx.gas,
+          maxFeePerGas: tx.maxFeePerGas,
+          maxPriorityFeePerGas: tx.maxPriorityFeePerGas,
         },
       });
       return transactionHash; // CDP's field is `transactionHash`, NOT `hash`
