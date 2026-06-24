@@ -30,10 +30,19 @@ call to get the state of the CC0 sector.
 
 | Slug | Refresh | Price | Returns |
 |---|---|---|---|
-| `cc0-daily-brief` | Hourly | 0.05 USDC | Top-5 CC0 NFT collections by 24h volume + per-collection metrics + cc0pedia editorial context + LLM-synthesized macro headline |
+| `cc0-daily-brief` | Hourly cache | 0.05 USDC | Top-5 CC0 NFT collections by 24h volume + per-collection metrics + cc0pedia editorial context + LLM-synthesized macro headline |
+| `cc0pedia` | Live per-query | 0.01 USDC | ONE resolved cc0pedia entry (CC0 creator / collection / work) by name or slug — provenance, creator, license, on-chain pointers + full CC0 body |
 
 Per-service detail files :
 - [`./cc0-daily-brief.md`](./cc0-daily-brief.md) — full schema, sample response, integration recipes
+- [`./cc0pedia.md`](./cc0pedia.md) — query the largest machine-readable CC0 database; full schema + recipes
+
+> **Two shapes here.** `cc0-daily-brief` is a *cached digest* (hourly,
+> empty body, cache semantics below apply). `cc0pedia` is a *live
+> lookup* — it takes a `{ "query": "..." }` body, reads the database
+> on every call, and has NO cache cadence / `/status` endpoint. A
+> `cc0pedia` query that matches nothing returns 404 and the x402
+> payment auto-cancels, so you only pay for entries that exist.
 
 ## Quick start (any service in this skill)
 
