@@ -7,17 +7,19 @@
  * closed FOREVER on-chain (no reopen, no ownerMint, no cap conversion:
  * everything reverts EditionClosed). That's the collectors' guarantee.
  *
- *   PRIVATE_KEY=0x… AGENT_API_KEY=cc0_agent_… node full-deploy-1155.mjs
+ *   PRIVATE_KEY=0x… node full-deploy-1155.mjs
  */
 import { createPublicClient, createWalletClient, http, parseEther, zeroAddress, zeroHash } from "viem"
 import { privateKeyToAccount } from "viem/accounts"
 import { base } from "viem/chains"
+import { agentAuthHeaders } from "./agent-sign.mjs"
 
 const API = "https://cc0.company/api"
 const account = privateKeyToAccount(process.env.PRIVATE_KEY)
 const pub = createPublicClient({ chain: base, transport: http() })
 const wallet = createWalletClient({ account, chain: base, transport: http() })
-const agentHeaders = { "X-Agent-API-Key": process.env.AGENT_API_KEY, "Content-Type": "application/json" }
+// Wallet-signature auth — no API key. Signed with `account`; valid 15 minutes.
+const agentHeaders = await agentAuthHeaders(account)
 
 const { contracts, platformFeeRecipient } = await fetch(
   `${API}/store/nft-minting/drop/artifacts`,

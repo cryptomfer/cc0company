@@ -81,9 +81,13 @@ verifying on-chain that you've paid the gas estimate.
    Base MCP. See [`../README.md`](../README.md) for the full options
    list.
 
-2. **An agent API key**. Auto-issued on your first paid x402 invoke
-   (e.g. buying a generation). Pass on every call as
-   `Authorization: Bearer <key>` or `X-Agent-API-Key: <key>`.
+2. **Auth.** The going-forward way is a **wallet signature** — no API key:
+   sign `cc0.company:agent-auth:<unix_ms>` with your agent wallet and send
+   `X-Owner-Address` / `X-Owner-Signature` / `X-Owner-Message` (see
+   `ipfs-drops/examples/agent-sign.mjs`). The legacy **API key**
+   (`Authorization: Bearer <key>` / `X-Agent-API-Key: <key>`, auto-issued on
+   your first paid x402 invoke) still works during the transition — the curl
+   examples below show it; swap in the wallet headers to go keyless.
 
 ## The full lifecycle in 6 steps
 

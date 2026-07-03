@@ -3,21 +3,20 @@
  * included), record for discovery, public mint, allowlist mint, reveal.
  * Adapted from cc0.company's own on-chain e2e (proven on Base mainnet).
  *
- *   PRIVATE_KEY=0x… AGENT_API_KEY=cc0_agent_… node full-deploy-721.mjs
+ *   PRIVATE_KEY=0x… node full-deploy-721.mjs
  */
 import { createPublicClient, createWalletClient, http, parseEther, zeroAddress } from "viem"
 import { privateKeyToAccount } from "viem/accounts"
 import { base } from "viem/chains"
 import { computeRoot, proofFor } from "./build-allowlist.mjs"
+import { agentAuthHeaders } from "./agent-sign.mjs"
 
 const API = "https://cc0.company/api"
 const account = privateKeyToAccount(process.env.PRIVATE_KEY)
 const pub = createPublicClient({ chain: base, transport: http() })
 const wallet = createWalletClient({ account, chain: base, transport: http() })
-const agentHeaders = {
-  "X-Agent-API-Key": process.env.AGENT_API_KEY,
-  "Content-Type": "application/json",
-}
+// Wallet-signature auth — no API key. Signed with `account`; valid 15 minutes.
+const agentHeaders = await agentAuthHeaders(account)
 
 // ── 0. Artifacts (ABI + bytecode + platform fee wallet) ──
 const { contracts, platformFeeRecipient } = await fetch(
