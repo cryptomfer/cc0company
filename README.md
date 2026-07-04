@@ -19,15 +19,28 @@ guide an agent installs into its runtime.
 
 ### `nft-collections/` map
 
+The tree is a rail → edition → standard matrix. The root owns the shared
+foundations (auth, ETH payment, chains, `social_links`); each rail router,
+edition router, and leaf links back up to it.
+
 | File | Covers |
 |---|---|
-| [`SKILL.md`](./nft-collections/SKILL.md) | Router: storage + edition decision, wallet-signature auth, ETH payment model, supported chains |
-| [`ipfs/SKILL.md`](./nft-collections/ipfs/SKILL.md) | IPFS-metadata drops (CC0Drop ERC721-C / CC0Drop1155): one self-signed deploy tx, phases, delayed reveal |
-| [`fully-onchain/SKILL.md`](./nft-collections/fully-onchain/SKILL.md) | SSTORE2 fully-onchain collections — [`erc1155.md`](./nft-collections/fully-onchain/erc1155.md) (multi-token, phases, 1/1 auctions) + [`erc721-shared.md`](./nft-collections/fully-onchain/erc721-shared.md) (single shared artwork, orchestrated deploy) |
-| [`open-edition/SKILL.md`](./nft-collections/open-edition/SKILL.md) | Open-edition supply policy across all contract families, incl. numbered-edition dynamic metadata |
-| [`limited-edition/SKILL.md`](./nft-collections/limited-edition/SKILL.md) | Fixed-supply editions + the canonical merkle allowlist recipe (every other doc links here) |
+| [`SKILL.md`](./nft-collections/SKILL.md) | **Root router** — wallet-signature auth (+ Bankr EIP-1271), ETH payment model, chains, `social_links`, and the rail→edition→standard decision tree linking all 8 leaves |
+| [`ipfs/SKILL.md`](./nft-collections/ipfs/SKILL.md) | **IPFS rail router** (CC0Drop ERC721-C / CC0Drop1155): pin art + metadata, one self-signed deploy tx, drop record, phases, delayed reveal, numbered-OE metadata, SDK `Cc0Drops` |
+| [`fully-onchain/SKILL.md`](./nft-collections/fully-onchain/SKILL.md) | **Fully-onchain rail router** (SSTORE2): chunked artwork uploads, 402-ETH platform work, prepare/confirm deploy, on-chain phases — raw-API only |
+| [`allowlist.md`](./nft-collections/allowlist.md) | **The** canonical merkle allowlist recipe (leaf format, OZ sorted-pair, holder snapshots, CC0Drop preimage re-persist) — the 4 limited leaves link here |
 | [`airdrops.md`](./nft-collections/airdrops.md) | Batch-mint airdrops + cross-chain holder snapshots |
 | [`examples/`](./nft-collections/examples) | `agent-sign.mjs` (wallet-signature auth helper), `e2e-cc0drop.mjs` (runnable pin → deploy → record → mint), `build-allowlist.mjs`, `build-merkle.ts` |
+| [`sdk/`](./sdk) | `@cc0company/sdk` v1.5.0 `Cc0Drops` — the typed programmatic path for the IPFS rail |
+
+The 8 leaves (rail / edition / standard):
+
+| Rail | Edition | Leaf (cc0drop = ERC721) | Leaf (erc1155) |
+|---|---|---|---|
+| IPFS | open | [`ipfs/open-edition/cc0drop`](./nft-collections/ipfs/open-edition/cc0drop/SKILL.md) | [`ipfs/open-edition/erc1155`](./nft-collections/ipfs/open-edition/erc1155/SKILL.md) |
+| IPFS | limited | [`ipfs/limited-edition/cc0drop`](./nft-collections/ipfs/limited-edition/cc0drop/SKILL.md) | [`ipfs/limited-edition/erc1155`](./nft-collections/ipfs/limited-edition/erc1155/SKILL.md) |
+| Fully-onchain | open | [`fully-onchain/open-edition/cc0drop`](./nft-collections/fully-onchain/open-edition/cc0drop/SKILL.md) | [`fully-onchain/open-edition/erc1155`](./nft-collections/fully-onchain/open-edition/erc1155/SKILL.md) |
+| Fully-onchain | limited | [`fully-onchain/limited-edition/cc0drop`](./nft-collections/fully-onchain/limited-edition/cc0drop/SKILL.md) | [`fully-onchain/limited-edition/erc1155`](./nft-collections/fully-onchain/limited-edition/erc1155/SKILL.md) |
 
 ### `agentic-marketplace/` map
 
