@@ -71,7 +71,10 @@ turn (this is the "step limit" Bankr hits). The backend collapses it into **two
 API calls + one signature**:
 
 **1. Prepare** — the backend pins your art + metadata, encodes the CC0Drop
-constructor, and returns ONE ready contract-creation transaction:
+constructor, and returns ONE ready transaction (**a normal call to the CC0
+factory** — it deploys the drop for you, so it has a real `to` your wallet can
+send; a raw `to:null` creation tx would be mangled to `to:0x0` = nothing
+deployed):
 
 ```bash
 curl -s https://cc0.company/api/store/agents/me/prepare-drop \
@@ -79,12 +82,13 @@ curl -s https://cc0.company/api/store/agents/me/prepare-drop \
   -H "Content-Type: application/json" \
   -d '{ "name": "gm mfers", "image": "https://…/art.png", "chain": "base",
         "edition": "open", "priceEth": "0", "durationHours": 24, "maxPerWallet": 1 }'
-# → { prepare_id, deploy_transaction: { to: null, data: "0x…", value: "0x0", chainId: 8453 },
+# → { prepare_id, deploy_transaction: { to: "0xB958…3065", data: "0x…", value: "0x0", chainId: 8453 },
+#     predicted_address: "0x…",   ← the deterministic (CREATE2) drop address
 #     base_uri, contract_uri, art_url }
 ```
 
-**2. Sign + send** `deploy_transaction` — a contract-creation tx (**no `to`**).
-Keep the tx hash.
+**2. Send** `deploy_transaction` as-is — a normal contract call. Keep
+`predicted_address` (the drop's address) from step 1.
 
 **3. Finalize** — records the drop (image included → never blank), emits the
 activity-feed event, returns the drop URL:
@@ -93,7 +97,7 @@ activity-feed event, returns the drop URL:
 curl -s https://cc0.company/api/store/agents/me/finalize-drop \
   -H "X-Owner-Address: $ADDR" -H "X-Owner-Signature: $SIG" -H "X-Owner-Message: $MSG" \
   -H "Content-Type: application/json" \
-  -d '{ "prepare_id": "…", "tx_hash": "0x…" }'      # or { "prepare_id", "contract_address" }
+  -d '{ "prepare_id": "…", "contract_address": "<predicted_address>" }'   # or { "prepare_id", "tx_hash" }
 # → { collection, drop_url: "https://cc0.company/us/drop/0x…" }
 ```
 
