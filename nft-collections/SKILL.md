@@ -18,7 +18,7 @@ Two storage rails, two edition policies, one auth story. This file routes you
 to the right sub-skill and holds the sections every sub-skill shares: auth,
 payment model, chains, `social_links`.
 
-**Preferred programmatic path:** `@cc0company/sdk` **v1.5.0** ships
+**Preferred programmatic path:** [`@cc0company/sdk` **v1.5.0**](../sdk/SKILL.md) ships
 `Cc0Drops` — the full IPFS drop lifecycle (pin / deploy / manage / mint) as
 typed methods, Bankr-compatible (`ExternalSender.signMessage` +
 `GET /store/agents/by-wallet/:address`). The sub-skills below document the

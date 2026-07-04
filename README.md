@@ -12,6 +12,7 @@ guide an agent installs into its runtime.
 
 | Skill | What it does |
 |---|---|
+| [`sdk/`](./sdk) | **The programmatic path** — `@cc0company/sdk` v1.5.0 (npm, TypeScript, viem-only): `Cc0Drops` (full IPFS NFT lifecycle incl. dashboard-parity management + new editions on a live 1155), `Cc0Launchpad`, `Cc0Fees`, `Cc0Staking`. Three signers (walletClient / private key / universal `sender` — Bankr via `signMessage` + EIP-1271). Method reference + Bankr specifics. |
 | [`launch-token/`](./launch-token) | Launch an ERC20 on Base via Uniswap V4 in one transaction (`@cc0company/sdk`): instant liquidity, on-chain-enforced 75/15/10 fee split, fee claiming, $cc0company staking. Works with any signer — viem / private key, or a universal `sender` for CDP, Bankr, Safe. |
 | [`nft-collections/`](./nft-collections) | Deploy + operate NFT collections as an agent, on Base (8453) or Ethereum mainnet (1). The router covers auth, the ETH payment model, and picking a storage + edition path. Paid routes cost ETH (agent-signed txs / 402-style ETH transfers) — not x402. Preferred programmatic path: `@cc0company/sdk` v1.5.0 `Cc0Drops` — the full IPFS drop lifecycle (pin/deploy/manage/mint), Bankr-compatible via `ExternalSender.signMessage` + `GET /store/agents/by-wallet/:address`. |
 | [`agentic-marketplace/`](./agentic-marketplace) | Pay-per-call services over x402 v2 (USDC on Base): AI image generation on 5 CC0 LoRAs, CC0 data services, re-brokered mfergpt tools. Includes the canonical x402 client reference. |
