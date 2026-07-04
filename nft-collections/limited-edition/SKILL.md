@@ -310,6 +310,17 @@ Semantics (verified against the backend route):
   the chain** until you broadcast: `prepare-onchain-tx` with
   `activate-allowlist`/`sync-allowlist` (721Shared), the 3-tx 1155 body
   (pass the returned `merkle_root`), or `setMerkleRoot` on a CC0Drop.
+- **CC0Drop closing step — MANDATORY.** The drop page builds cc0drop
+  buyer proofs ONLY from the record's `seadrop_allowlist.entries`
+  preimage, never from DB phases. After `from-collection`:
+  1. `GET /agents/me/collections/:id/allowlist?phase_id=…` — fetch the
+     generated entries + `merkle_root`,
+  2. re-persist them:
+     `POST /store/nft-minting/seadrop/allowlist` with
+     `{ contract_address, seadrop_allowlist: { kind: "cc0drop",
+     merkleRoot, phase, entries } }`,
+  3. send `setMerkleRoot(root)` on the contract.
+  Skip the re-persist and site buyers cannot mint — no proofs.
 - Errors: 400 "snapshot returned no eligible holders", 502 on
   upstream (Alchemy) failure — retry.
 

@@ -13,7 +13,7 @@ guide an agent installs into its runtime.
 | Skill | What it does |
 |---|---|
 | [`launch-token/`](./launch-token) | Launch an ERC20 on Base via Uniswap V4 in one transaction (`@cc0company/sdk`): instant liquidity, on-chain-enforced 75/15/10 fee split, fee claiming, $cc0company staking. Works with any signer — viem / private key, or a universal `sender` for CDP, Bankr, Safe. |
-| [`nft-collections/`](./nft-collections) | Deploy + operate NFT collections as an agent, on Base (8453) or Ethereum mainnet (1). The router covers auth, the ETH payment model, and picking a storage + edition path. Paid routes cost ETH (agent-signed txs / 402-style ETH transfers) — not x402. |
+| [`nft-collections/`](./nft-collections) | Deploy + operate NFT collections as an agent, on Base (8453) or Ethereum mainnet (1). The router covers auth, the ETH payment model, and picking a storage + edition path. Paid routes cost ETH (agent-signed txs / 402-style ETH transfers) — not x402. Preferred programmatic path: `@cc0company/sdk` v1.5.0 `Cc0Drops` — the full IPFS drop lifecycle (pin/deploy/manage/mint), Bankr-compatible via `ExternalSender.signMessage` + `GET /store/agents/by-wallet/:address`. |
 | [`agentic-marketplace/`](./agentic-marketplace) | Pay-per-call services over x402 v2 (USDC on Base): AI image generation on 5 CC0 LoRAs, CC0 data services, re-brokered mfergpt tools. Includes the canonical x402 client reference. |
 
 ### `nft-collections/` map
@@ -26,7 +26,7 @@ guide an agent installs into its runtime.
 | [`open-edition/SKILL.md`](./nft-collections/open-edition/SKILL.md) | Open-edition supply policy across all contract families, incl. numbered-edition dynamic metadata |
 | [`limited-edition/SKILL.md`](./nft-collections/limited-edition/SKILL.md) | Fixed-supply editions + the canonical merkle allowlist recipe (every other doc links here) |
 | [`airdrops.md`](./nft-collections/airdrops.md) | Batch-mint airdrops + cross-chain holder snapshots |
-| [`examples/`](./nft-collections/examples) | `agent-sign.mjs` (wallet-signature auth helper), `build-allowlist.mjs`, `build-merkle.ts` |
+| [`examples/`](./nft-collections/examples) | `agent-sign.mjs` (wallet-signature auth helper), `e2e-cc0drop.mjs` (runnable pin → deploy → record → mint), `build-allowlist.mjs`, `build-merkle.ts` |
 
 ### `agentic-marketplace/` map
 

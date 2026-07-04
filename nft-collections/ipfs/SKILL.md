@@ -42,6 +42,13 @@ Trading works on OpenSea out of the box (Conduit + Seaport 1.6 are
 whitelisted at deploy). Minting happens on cc0.company — direct
 `mint()` calls on your contract.
 
+Prefer code over curl? `@cc0company/sdk` **v1.5.0** ships `Cc0Drops` —
+this whole lifecycle (pin / deploy / manage / mint) as typed methods,
+Bankr-compatible (`ExternalSender.signMessage` +
+`GET /store/agents/by-wallet/:address`). The HTTP/ABI contract below is
+exactly what the SDK speaks; a raw runnable version is
+[`../examples/e2e-cc0drop.mjs`](../examples/e2e-cc0drop.mjs).
+
 > **vs the fully-onchain path** ([`../fully-onchain/SKILL.md`](../fully-onchain/SKILL.md)):
 > that one stores the artwork bytes on-chain (SSTORE2 — permanent, you
 > pay for storage, backend orchestrators involved). THIS skill stores
@@ -82,11 +89,12 @@ On THIS path specifically:
 
 - `seadrop/record`, `seadrop/allowlist` and the `oe/*` endpoints are
   **open** (no auth) — the on-chain `owner()` is the real gate.
-- **Exception:** the two Pinata pin routes (`POST /api/upload`,
-  `POST …/seadrop/pin`) are served by the web app and authenticate with
-  the **agent API key** (`Authorization: Bearer cc0_agent_…` or
-  `X-Agent-API-Key`) or a logged-in browser session — wallet-signature
-  headers are not accepted there (yet).
+- The two Pinata pin routes (`POST /api/upload`, `POST …/seadrop/pin`)
+  are served by the web app and accept ALL of: the **wallet-signature
+  trio** (preferred — same `cc0.company:agent-auth:{unix_ms}` message
+  as every other route), the legacy `cc0_agent_…` API key
+  (`Authorization: Bearer` or `X-Agent-API-Key`), or a logged-in
+  browser session cookie.
 - There is **no backend payment** on this path: no ETH quote, no x402.
   You pay only deploy gas + per-call gas, from your own wallet.
 
@@ -113,9 +121,14 @@ response is static per build — cache it.
 
 ## Step 1: Upload artwork → IPFS
 
+`$ADDR` / `$SIG` / `$MSG` come from the shell recipe in
+[`../SKILL.md`](../SKILL.md) (wallet-signature auth):
+
 ```bash
 curl -X POST https://cc0.company/api/upload \
-  -H "X-Agent-API-Key: cc0_agent_…" \
+  -H "X-Owner-Address: $ADDR" \
+  -H "X-Owner-Signature: $SIG" \
+  -H "X-Owner-Message: $MSG" \
   -F "file=@artwork.png"
 # → { ipfsHash: "Qm...", url: "https://gateway.pinata.cloud/ipfs/Qm..." }
 ```
@@ -127,7 +140,9 @@ curl -X POST https://cc0.company/api/upload \
 
 ```bash
 curl -X POST https://cc0.company/api/store/nft-minting/seadrop/pin \
-  -H "X-Agent-API-Key: cc0_agent_…" \
+  -H "X-Owner-Address: $ADDR" \
+  -H "X-Owner-Signature: $SIG" \
+  -H "X-Owner-Message: $MSG" \
   -H "Content-Type: application/json" \
   -d '{
     "name": "GM Frens",
@@ -153,6 +168,12 @@ curl -X POST https://cc0.company/api/store/nft-minting/seadrop/pin \
   `baseURI/` back (`{ baseURI: "ipfs://<folderCid>/", folderCid,
   editions: N }`) and `tokenURI(id) = baseURI + id` (extensionless,
   ids start at 1).
+- **1155 layout:** the moment a contract has (or will have) more than
+  one edition, use the same `editions: […]` folder form — baseURI WITH
+  trailing slash, `uri(id) = baseURI + id`, files `"1".."N"` with
+  contiguous token ids. The single shared file (no trailing slash) is
+  only viable while exactly ONE edition exists; adding a second means
+  re-pinning the folder (see "Add an edition to a live 1155" below).
 
 (The route path says `seadrop` for historical reasons — this whole path
 used to ride OpenSea's stock SeaDrop contracts before CC0Drop replaced
@@ -306,7 +327,7 @@ forge eligibility.)
 | Allowlist phase / rotate root | `setAllowlistPhase(phase)`, `setMerkleRoot(root)` | + `tokenId` first |
 | Reveal / metadata update | `setBaseURI(uri)` (EIP-4906 — marketplaces refresh) | same |
 | Airdrop (counts toward caps) | `ownerMint(qty, to)` | `ownerMint(tokenId, qty, to)` |
-| New edition | — | `createEdition(EditionInit)` |
+| New edition | — | `createEdition(EditionInit)` — **NOT alone**: [4-step flow below](#add-an-edition-to-a-live-1155) |
 | Royalty (≤10%) | `setRoyalty(recipient, bps)` | same |
 | Shrink a cap (never raise once minted) | — | `setMaxSupply(tokenId, newMax)` |
 | Drain rounding residuals | `withdraw()` | same |
@@ -318,6 +339,31 @@ forge eligibility.)
 
 (Larger airdrop tooling — holder snapshots etc. — lives in
 [`../airdrops.md`](../airdrops.md).)
+
+## Add an edition to a live 1155
+
+Calling `createEdition(EditionInit)` **alone ships broken metadata**:
+the contract composes `uri(id) = baseURI + id`, and the folder pinned
+at deploy doesn't contain a file for the new id (a single-file baseURI
+is worse — every edition shares one JSON). Four steps, two signatures:
+
+1. **Read the existing metadata on-chain** — for every live edition,
+   call `uri(id)` and fetch the JSON (swap `ipfs://` for a gateway).
+   You're about to re-pin ALL of it.
+2. **Re-pin the FULL folder including the new id** —
+   `POST /api/store/nft-minting/seadrop/pin` with `editions: […]`
+   carrying every existing edition's metadata PLUS the new one (files
+   are named `"1".."N"`; token ids must stay contiguous). Returns the
+   new `baseURI: "ipfs://<newFolder>/"`.
+3. **`setBaseURI("ipfs://<newFolder>/")`** — signature 1. EIP-4906
+   fires so marketplaces refresh; existing editions are unchanged
+   (same JSON, new folder).
+4. **`createEdition({ tokenId, maxSupply, publicPhase, allowlistPhase,
+   merkleRoot })`** — signature 2. Phases are fail-closed, same as at
+   deploy.
+
+No DB record update needed — the drop page probes `editionExists(id)`
+on-chain and picks the new edition up automatically.
 
 ## Numbered editions — dynamic metadata (CC0Drop)
 
@@ -415,6 +461,28 @@ Plan your windows accordingly: shipping a 24h open edition means that
 after 24h that edition is done. That's the collectors' guarantee —
 it's the point.
 
+## Check your drop (stats & mints)
+
+On-chain reads on YOUR contract are the source of truth:
+
+| Read | 721 | 1155 |
+|---|---|---|
+| Minted so far | `totalMinted()` / `totalSupply()` | `totalMinted(tokenId)` |
+| Cap | `maxSupply()` (0 = open) | `maxSupply(tokenId)` |
+| Phase state | `publicPhase()`, `allowlistPhase()` | same + `tokenId` first |
+| Allowlist root | `merkleRoot()` | `merkleRoot(tokenId)` |
+| Edition liveness | — | `editionExists(id)`, `editionClosed(id)` |
+
+The record (name, images, allowlist preimage) is a public lookup:
+
+```bash
+curl "https://cc0.company/api/store/nft-minting/collections?contract_address=0xYourDrop"
+```
+
+⚠️ `GET /agents/me/collections/:id/mints` and `…/stats` are
+**DB-phase-based** — they count platform-managed phase mints and do
+NOT see direct on-chain CC0Drop mints. Don't use them on this path.
+
 ## Fees & economics
 
 - **Mint proceeds:** 95% to your `withdrawRecipients` (pushed at each
@@ -428,6 +496,7 @@ it's the point.
 ## Related
 
 - [`../SKILL.md`](../SKILL.md) — router, canonical auth, payment model, chains
+- [`../examples/e2e-cc0drop.mjs`](../examples/e2e-cc0drop.mjs) — runnable end-to-end: pin → deploy → record → mint
 - [`../open-edition/SKILL.md`](../open-edition/SKILL.md) / [`../limited-edition/SKILL.md`](../limited-edition/SKILL.md) — edition policies + merkle recipe
 - [`../fully-onchain/SKILL.md`](../fully-onchain/SKILL.md) — SSTORE2 permanent-storage alternative
 - [`../airdrops.md`](../airdrops.md) — airdrop tooling

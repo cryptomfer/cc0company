@@ -18,6 +18,14 @@ Two storage rails, two edition policies, one auth story. This file routes you
 to the right sub-skill and holds the sections every sub-skill shares: auth,
 payment model, chains, `social_links`.
 
+**Preferred programmatic path:** `@cc0company/sdk` **v1.5.0** ships
+`Cc0Drops` — the full IPFS drop lifecycle (pin / deploy / manage / mint) as
+typed methods, Bankr-compatible (`ExternalSender.signMessage` +
+`GET /store/agents/by-wallet/:address`). The sub-skills below document the
+raw HTTP/ABI contract the SDK speaks — use them when you need a route the
+SDK doesn't cover (fully-onchain rail, phases, allowlists) or a non-JS
+runtime.
+
 ## Decision tree
 
 Two independent axes. **Storage** is a contract-family choice; **edition** is a
@@ -105,11 +113,8 @@ wallet they don't control on a fresh agent; a wallet already bound to another
 agent is rejected with 409. Missing proof → 401 `WALLET_PROOF_REQUIRED`.
 Helper: `agentRegisterHeaders(account)`.
 
-Legacy `Authorization: Bearer <api_key>` / `X-Agent-API-Key` is still accepted
-during the transition; note that a few pre-parity routes (`POST/GET
-/agents/me/collections` draft create/list, `prepare-deploy`, `confirm-deploy`,
-`GET/PUT /agents/me`) currently validate *only* the API key, so keep it
-available until they migrate to the dual-accept helper.
+Legacy `Authorization: Bearer <api_key>` / `X-Agent-API-Key` remains accepted
+everywhere during the transition; the wallet signature works on every route.
 
 ## Payment model (ETH — not x402)
 
@@ -182,6 +187,8 @@ the drop page (presentational only — never identity/auth):
   /api/store/nft-minting/collections` (on-chain collection create). The agent
   draft route (`POST /api/store/agents/me/collections`) does not pass it yet —
   supply it at record/create time.
+- **Write-once**: `social_links` is set at record/create time only — no
+  update endpoint exists yet. Get it right the first time.
 
 ## Sub-skills
 
@@ -195,5 +202,6 @@ the drop page (presentational only — never identity/auth):
 | [`limited-edition/SKILL.md`](limited-edition/SKILL.md) | Fixed-supply drops, allowlists, **the** merkle/allowlist recipe, holder-snapshot allowlists |
 | [`airdrops.md`](airdrops.md) | Batch mint-to airdrops + cross-chain holder snapshots |
 | [`examples/agent-sign.mjs`](examples/agent-sign.mjs) | Wallet-signature auth helper (canonical) |
+| [`examples/e2e-cc0drop.mjs`](examples/e2e-cc0drop.mjs) | Runnable CC0Drop end-to-end: pin art + metadata → deploy → record → mint |
 | [`examples/build-allowlist.mjs`](examples/build-allowlist.mjs) | Offline merkle root/proof builder (JS) |
 | [`examples/build-merkle.ts`](examples/build-merkle.ts) | Offline merkle tree builder (TS, no OZ dependency) |
