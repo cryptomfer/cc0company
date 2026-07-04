@@ -1,21 +1,21 @@
 ---
 name: cc0company-launch-token
 version: 2.0.0
-description: Launch your own token on the cc0.company launchpad (Base, Uniswap V4) as an AI agent — one transaction, instant liquidity, 75% of all trading fees back to you forever, enforced on-chain. Wallet flows for viem / private key / CDP, an HTTP-only sender flow for Bankr-style wallets, fee claiming, and $cc0company staking.
+description: Launch your own token on the cc0.company launchpad (Base · Ethereum · Robinhood Chain, Uniswap V4) as an AI agent — one transaction, instant liquidity, 75% of all trading fees back to you forever, enforced on-chain. Wallet flows for viem / private key / CDP, an HTTP-only sender flow for Bankr-style wallets, fee claiming, and $cc0company staking.
 homepage: https://cc0.company
 api_base: https://cc0.company/api
 sdk: "@cc0company/sdk"
-chain: base
-chain_id: 8453
-factory: 0xf9007657b627c5421d6eBD5D71F86CDfCdc7dA8D
-fee_locker: 0xC04bdF721FA5CEc839819864FA86F3D48B89Fcee
-staking: 0x38cE743b88c54eD1aF84816Ff596E518d16DFF95
-cc0company_token: 0x67c5F00491c09cbCF6359f95690574E6106bb3CF
+chains: base (8453) | ethereum (1) | robinhood (4663)
+factory_base: 0xf9007657b627c5421d6eBD5D71F86CDfCdc7dA8D
+factory_ethereum: 0x70baFfe8783396142385Ece53f2cDF8D1cf9872C
+factory_robinhood: 0x79F331d3d7977062d5c78Ad122851fC57Ee3DC1a
+cc0company_token: 0x67c5F00491c09cbCF6359f95690574E6106bb3CF # lives on Base; staking happens there
 ---
 
 # cc0.company Launch Token — Skill for AI Agents
 
-Launch a token on Base in ONE transaction: ERC20 + Uniswap V4 pool + liquidity
+Launch a token on **Base, Ethereum mainnet, or Robinhood Chain** in ONE
+transaction: ERC20 + Uniswap V4 pool + liquidity
 locked forever + fee split wired — atomically. The token trades the second the
 transaction lands. Your token page on cc0.company (chart, swap, fee-claim
 button) goes live automatically.
@@ -50,7 +50,12 @@ Source: [github.com/cryptomfer/cc0company-sdk](https://github.com/cryptomfer/cc0
 import { Cc0Launchpad } from '@cc0company/sdk';
 import { privateKeyToAccount } from 'viem/accounts';
 
-const launchpad = new Cc0Launchpad({ account: privateKeyToAccount(process.env.PK) });
+// Pick the chain at construction — 'base' (default) | 'ethereum' | 'robinhood'
+// (or the ids 8453 | 1 | 4663). Same factory logic, same enforced split on all three.
+const launchpad = new Cc0Launchpad({
+  account: privateKeyToAccount(process.env.PK),
+  chain: 'base',
+});
 // or { walletClient } for browser wallets (MetaMask, Rabby, …)
 ```
 
@@ -77,7 +82,8 @@ Need the `ipfs://` URI up front (e.g. for Path B)?
 direct endpoint: `POST https://cc0.company/api/store/launchpad/pin-image`
 (multipart `file` or JSON `{ url }`).
 
-Gas: a few cents of ETH on Base. That's the only cost — no listing fee.
+Gas: paid in ETH on all three chains — a few cents on Base / Robinhood Chain,
+mainnet prices on Ethereum. That's the only cost — no listing fee.
 
 ## Path B — ANY other wallet infra (Coinbase CDP, Bankr, Safe, relayers)
 
@@ -107,7 +113,7 @@ const launchpad = new Cc0Launchpad({
       // (tx.json — the hex mirror — is for RAW JSON transports/relayers only.)
       const { transactionHash } = await cdp.evm.sendTransaction({
         address: account.address,
-        network: 'base',
+        network: 'base', // or 'ethereum' — Robinhood Chain isn't a CDP network; use the generic sender + its RPC
         transaction: {
           to: tx.to,
           data: tx.data,
@@ -147,7 +153,7 @@ const launchpad = new Cc0Launchpad({
             to: tx.json.to,
             data: tx.json.data,
             value: tx.json.value ?? '0',
-            chainId: 8453,
+            chainId: 8453, // must match your chain: 8453 Base · 1 Ethereum · 4663 Robinhood
           },
           description: 'cc0.company token launch',
           waitForConfirmation: true,
@@ -241,15 +247,26 @@ await staking.withdraw();
 await staking.exit();                      // claim all + unstake all, one tx
 ```
 
-## Contract reference (Base mainnet, all verified)
+## Contract reference (all three chains, all verified)
 
-| Contract | Address |
-|----------|---------|
-| Factory (validates the split) | `0xf9007657b627c5421d6eBD5D71F86CDfCdc7dA8D` |
-| Fee locker (claim here) | `0xC04bdF721FA5CEc839819864FA86F3D48B89Fcee` |
-| Staking | `0x38cE743b88c54eD1aF84816Ff596E518d16DFF95` |
-| $cc0company | `0x67c5F00491c09cbCF6359f95690574E6106bb3CF` |
-| WETH (Base) | `0x4200000000000000000000000000000000000006` |
+Independently deployed on each chain — same factory logic, same enforced split.
+The SDK picks the right addresses from your `chain` automatically
+(`CC0_CONTRACTS` export); hardcode only if you skip the SDK.
+
+| Contract | Base (8453) | Ethereum (1) | Robinhood Chain (4663) |
+|----------|-------------|--------------|------------------------|
+| Factory (validates the split) | `0xf9007657b627c5421d6eBD5D71F86CDfCdc7dA8D` | `0x70baFfe8783396142385Ece53f2cDF8D1cf9872C` | `0x79F331d3d7977062d5c78Ad122851fC57Ee3DC1a` |
+| Fee locker (claim here) | `0xC04bdF721FA5CEc839819864FA86F3D48B89Fcee` | `0x0De94068195C5d85e31406804357F44E0D20E255` | `0x343d77D94A119D5cEA495aeE8336A3a7Aa5CD385` |
+| Staking recipient (the 15%) | `0x38cE743b88c54eD1aF84816Ff596E518d16DFF95` | `0xF84D22728E7f4DdD56Fd3BE7Cb30148e727A8a1a` | `0xE4542b52Ed212bDcFb10f3C9F8A12f2cEeeF35b2` |
+| WETH | `0x4200000000000000000000000000000000000006` | `0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2` | `0x0Bd7D308f8E1639FAb988df18A8011f41EAcAD73` |
+
+Explorers: [basescan.org](https://basescan.org) · [etherscan.io](https://etherscan.io) · [robinhoodchain.blockscout.com](https://robinhoodchain.blockscout.com) (Arbitrum-Orbit L2, ETH gas).
+
+**Staking is on Base only** — `$cc0company` `0x67c5F00491c09cbCF6359f95690574E6106bb3CF`.
+The 15% staker slice still reaches the Base pool from every chain: on Ethereum via
+the `Cc0EthStakingForwarder` (WETH → OP bridge → Base), on Robinhood Chain via the
+`Cc0StakingEscrow` (Relay bridge). Stake on Base, earn from launches on all three.
+**Fee claiming (`Cc0Fees`) happens on the chain you launched on.**
 
 Full list: [cc0.company/docs/smart-contracts](https://cc0.company/docs/smart-contracts).
 
