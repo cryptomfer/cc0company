@@ -18,6 +18,16 @@ single synchronous call, then pay only for what it uses.
 | **Manifest** | https://cc0.company/.well-known/ai-tool/cc0pedia.json |
 | **Output license** | CC0 |
 
+Payment is the standard x402 v2 flow — sign the EIP-3009 USDC authorization
+advertised by the 402 challenge and retry with `PAYMENT-SIGNATURE`. Client
+code: [`../x402-payments/SKILL.md`](../x402-payments/SKILL.md).
+
+Three sibling tools ride the same database at the same price —
+`cc0pedia-search` (free-text → ranked candidates), `cc0pedia-verify`
+(contract address → CC0 license oracle), and `cc0pedia-market` (slug or
+contract → live market data). All three are documented in
+[`./SKILL.md`](./SKILL.md).
+
 ## Input
 
 ```json
@@ -33,7 +43,9 @@ visible.
 
 **Pay only for hits.** A query that matches nothing returns `404` and the
 x402 payment **auto-cancels** — you are never charged for a miss. A
-malformed call (missing `query`) returns `400`, also no charge.
+malformed call (missing `query`) returns `400`, also no charge. (If you're
+not sure of the name, spend one cent on `cc0pedia-search` first and chain
+the winning slug into this lookup.)
 
 ## Output (200)
 
@@ -88,9 +100,9 @@ malformed call (missing `query`) returns `400`, also no charge.
   - For a `work`, `creator` resolves to the artist entry (slug, title, url).
   - For an `artist`, `related_works` lists their published works.
 - **`collections[]`** — on-chain pointers (contract address, chain,
-  OpenSea URL). Follow these to pull **live market data** yourself, or
-  call the [`cc0-daily-brief`](./cc0-daily-brief.md) service for the
-  top-of-sector digest.
+  OpenSea URL). Follow these to pull **live market data** via the
+  `cc0pedia-market` tool ([`./SKILL.md`](./SKILL.md)), or call
+  [`cc0-daily-brief`](./cc0-daily-brief.md) for the top-of-sector digest.
 - **`content_license`** — always `CC0-1.0`: the wiki text is public
   domain. Reuse, repost, train on, remix without attribution.
 - **`body`** — the full CC0 wiki body (markdown) with the provenance /
@@ -101,18 +113,12 @@ malformed call (missing `query`) returns `400`, also no charge.
 ## Quick start
 
 ```bash
-# 1. Probe → 402 challenge advertising 0.01 USDC
-curl -i -X POST https://cc0.company/api/store/agent-services/cc0pedia/invoke \
-  -H "Content-Type: application/json" -d '{"query":"mfers"}'
-
-# 2. Sign the EIP-3009 USDC authorization to the payTo from the header
-#    (any viem-compatible wallet — see ../x402-payments/SKILL.md)
-
-# 3. Retry with the signature → 200 with the resolved entry
+# Probe → 402 challenge advertising 0.01 USDC, then retry signed:
 curl -X POST https://cc0.company/api/store/agent-services/cc0pedia/invoke \
   -H "Content-Type: application/json" \
   -H "PAYMENT-SIGNATURE: <base64-signed-payload>" \
   -d '{"query":"mfers"}'
+# → 200 with the resolved entry
 ```
 
 ## Recipes
@@ -121,7 +127,9 @@ curl -X POST https://cc0.company/api/store/agent-services/cc0pedia/invoke \
 An agent about to remix / repost / build on a collection looks it up
 first: `{ "query": "mfers" }` → confirm `content_license`, read the
 `collections[].contract_address` to make sure it's the canonical
-contract, skim the `body` for provenance. One call, $0.01.
+contract, skim the `body` for provenance. One call, $0.01. (Have only a
+contract address? Use `cc0pedia-verify` instead — it's built exactly for
+that direction.)
 
 **Enrich a wallet/collection feed with creator + lore.**
 You have a contract address and want human-readable context. Query by
@@ -135,11 +143,10 @@ need the full record.
 
 ## Related
 
-- [`./cc0-daily-brief.md`](./cc0-daily-brief.md) — live market data for
+- [`./SKILL.md`](./SKILL.md) — umbrella for data services, including the
+  `cc0pedia-search` / `cc0pedia-verify` / `cc0pedia-market` sibling tools
+- [`./cc0-daily-brief.md`](./cc0-daily-brief.md) — live market digest for
   the top CC0 collections (pairs naturally: cc0pedia for *who/what/why*,
-  daily-brief for *how it's trading*).
-- [`../x402-payments/SKILL.md`](../x402-payments/SKILL.md) — x402 v2
-  client reference. Read first if you've never signed an EIP-3009 USDC
-  authorization.
+  daily-brief for *how it's trading*)
 
 Browse the database in a human UI: https://cc0.company/cc0pedia

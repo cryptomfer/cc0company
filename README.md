@@ -1,36 +1,46 @@
 # cc0.company — Skills for AI Agents
 
-This repo is the **canonical source of truth** for how AI agents
-integrate with [cc0.company](https://cc0.company). Each skill is a
-focused, self-contained guide an agent can install into its runtime
-to unlock a specific capability on the platform.
-
-cc0.company is an NFT-commerce + AI-agent platform on Base L2 where
-**everything is public domain (CC0)** and **agents are first-class
-citizens**. Every API surface humans use is mirrored under
-`/api/store/agents/me/...` with API-key auth + ownership checks, so
-an agent can deploy stores, drop ERC1155 collections, ship
-ERC721Shared single-artwork drops, run auctions, or buy image
-generations from cc0.company's managed CC0 LoRAs — all
-programmatically, all with on-chain settlement in USDC or ETH on
-Base.
+This repo is the canonical source of truth for how AI agents integrate with
+[cc0.company](https://cc0.company): an NFT-commerce + AI-agent platform where
+everything is public domain (CC0) and agents are first-class citizens. Every
+surface humans use is mirrored for agents under `/api/store/agents/me/*` —
+launch a token, deploy and operate NFT collections on Base or Ethereum
+mainnet, buy pay-per-call AI services. Each skill is a focused, self-contained
+guide an agent installs into its runtime.
 
 ## Skills index
 
 | Skill | What it does |
 |---|---|
-| [`launchpad/`](./launchpad) | **Launch your own token** — one tx on Base (Uniswap V4): instant liquidity, 75% of ALL trading fees back to you forever, enforced on-chain. SDK (`@cc0company/sdk`) works with ANY signer: viem wallet / private key, or a universal `sender` for Coinbase CDP, Bankr and Safes. Images auto-pinned to IPFS. Fee claiming + $cc0company staking included. |
-| [`agent-services/`](./agent-services) | **Buy AI image generations** — pay-per-call inference on 5 fine-tuned CC0 LoRAs (sartoshi, darkfarms, hokusai, van-gogh, monet) via x402 v2 USDC. Includes per-model prompt skills. |
-| [`data-services/`](./data-services) | **Buy CC0 market intel** — pay-per-call synchronous JSON (no polling) over the CC0 sector. `cc0-daily-brief` (0.05 USDC) — hourly top-5 CC0 collections by 24h volume + cc0pedia context + LLM narrative. `cc0pedia` (0.01 USDC) — look up any CC0 creator / collection / work in the largest machine-readable CC0 database (provenance, creator, license, on-chain pointers). |
-| [`mfergpt/`](./mfergpt) | **Call mfergpt's AI services** — cc0.company re-brokers mfergpt's live x402 catalog (lore search, ask-anything, image→mfer) as synchronous pay-per-call endpoints. Same wallet + protocol as everything else; flat $0.005 platform fee. |
-| [`ipfs-drops/`](./ipfs-drops) | **Launch an IPFS drop in ONE transaction** — CC0Drop (ERC721-C) / CC0Drop1155 (ERC1155-C): phases, per-wallet merkle allowlists, delayed reveal, open/limited editions and AUTOMATIC Limit Break royalty enforcement all baked into the constructor. Live the second the deploy lands; buyers mint with direct calls. Open-edition finality: an ended open edition can NEVER be reopened. **Default choice for public drops.** |
-| [`erc1155-mint/`](./erc1155-mint) | **Drop your own ERC1155 collection** — deploy contract on Base, configure open/limited/auction edition phases, mint allowlist gating, settle auctions, airdrops. Backend handles SSTORE2 chunking + `createTokenWithAttributes` after the agent pays ETH gas. |
-| [`erc721-shared-mint/`](./erc721-shared-mint) | **Drop your own ERC721 shared-artwork collection** — one shared image, fixed max supply, multi-phase mint with merkle-allowlist + public windows. Single-payment orchestrator handles deploy + on-chain artwork commit in one server-side flow. |
-| [`x402-payments/`](./x402-payments) | **Canonical x402 v2 client reference** — three signing patterns (viem one-liner, Bankr HTTP, CDP SDK), Coinbase Bazaar discovery, payment header format, error matrix. |
+| [`launch-token/`](./launch-token) | Launch an ERC20 on Base via Uniswap V4 in one transaction (`@cc0company/sdk`): instant liquidity, on-chain-enforced 75/15/10 fee split, fee claiming, $cc0company staking. Works with any signer — viem / private key, or a universal `sender` for CDP, Bankr, Safe. |
+| [`nft-collections/`](./nft-collections) | Deploy + operate NFT collections as an agent, on Base (8453) or Ethereum mainnet (1). The router covers auth, the ETH payment model, and picking a storage + edition path. Paid routes cost ETH (agent-signed txs / 402-style ETH transfers) — not x402. |
+| [`agentic-marketplace/`](./agentic-marketplace) | Pay-per-call services over x402 v2 (USDC on Base): AI image generation on 5 CC0 LoRAs, CC0 data services, re-brokered mfergpt tools. Includes the canonical x402 client reference. |
+
+### `nft-collections/` map
+
+| File | Covers |
+|---|---|
+| [`SKILL.md`](./nft-collections/SKILL.md) | Router: storage + edition decision, wallet-signature auth, ETH payment model, supported chains |
+| [`ipfs/SKILL.md`](./nft-collections/ipfs/SKILL.md) | IPFS-metadata drops (CC0Drop ERC721-C / CC0Drop1155): one self-signed deploy tx, phases, delayed reveal |
+| [`fully-onchain/SKILL.md`](./nft-collections/fully-onchain/SKILL.md) | SSTORE2 fully-onchain collections — [`erc1155.md`](./nft-collections/fully-onchain/erc1155.md) (multi-token, phases, 1/1 auctions) + [`erc721-shared.md`](./nft-collections/fully-onchain/erc721-shared.md) (single shared artwork, orchestrated deploy) |
+| [`open-edition/SKILL.md`](./nft-collections/open-edition/SKILL.md) | Open-edition supply policy across all contract families, incl. numbered-edition dynamic metadata |
+| [`limited-edition/SKILL.md`](./nft-collections/limited-edition/SKILL.md) | Fixed-supply editions + the canonical merkle allowlist recipe (every other doc links here) |
+| [`airdrops.md`](./nft-collections/airdrops.md) | Batch-mint airdrops + cross-chain holder snapshots |
+| [`examples/`](./nft-collections/examples) | `agent-sign.mjs` (wallet-signature auth helper), `build-allowlist.mjs`, `build-merkle.ts` |
+
+### `agentic-marketplace/` map
+
+| File | Covers |
+|---|---|
+| [`SKILL.md`](./agentic-marketplace/SKILL.md) | Catalog router: every paid service, price, sync vs async job semantics |
+| [`x402-payments/SKILL.md`](./agentic-marketplace/x402-payments/SKILL.md) | The ONLY place with x402 client code: signing patterns (viem one-liner / Bankr HTTP-only / CDP), Bankr config gotchas, Bazaar + agentic.market discovery, error matrix |
+| [`image-generation/SKILL.md`](./agentic-marketplace/image-generation/SKILL.md) | Pay-per-call image gen on 5 CC0 LoRAs (0.069 USDC) + per-model prompt guides: `sartoshi-gen.md`, `darkfarms-gen.md`, `hokusai-gen.md`, `van-gogh-gen.md`, `monet-gen.md` |
+| [`data/SKILL.md`](./agentic-marketplace/data/SKILL.md) | Synchronous JSON data services: [`cc0-daily-brief.md`](./agentic-marketplace/data/cc0-daily-brief.md) (0.05 USDC), [`cc0pedia.md`](./agentic-marketplace/data/cc0pedia.md) (0.01 USDC) |
+| [`mfergpt/SKILL.md`](./agentic-marketplace/mfergpt/SKILL.md) | Re-brokered mfergpt x402 services: lore search, ask, image→mfer |
 
 ## Install
 
-### As an Anthropic skill (Claude Code, Codex, Gemini CLI)
+### As an agent skill (Claude Code, Codex, Gemini CLI)
 
 ```bash
 git clone https://github.com/cryptomfer/cc0company.git ~/.claude/skills/cc0company
@@ -44,34 +54,48 @@ mkdir -p .claude/skills && cd .claude/skills
 git clone https://github.com/cryptomfer/cc0company.git
 ```
 
-Your agent runtime will discover the skills automatically on next
-load. Each subdirectory's `SKILL.md` is the activation entry point;
-sub-files (`examples/`, model-specific prompt guides, etc.) are
-loaded when the agent reaches for them.
+Your agent runtime discovers the skills on next load. Each `SKILL.md` is the
+activation entry point; sub-files (`examples/`, per-model prompt guides,
+edition/storage sub-skills) load when the agent reaches for them.
 
 ### As reference docs (humans, just curl-ing the API)
 
-Each `SKILL.md` is also valid Markdown for human eyes. The bash and
-TypeScript snippets are copy-pasteable. There's nothing
-agent-specific about the underlying API contracts — anything an
-agent does, a human can do with the same endpoints + API key.
+Every `SKILL.md` is plain Markdown with copy-pasteable bash and TypeScript.
+Nothing is agent-specific about the API contracts — anything an agent does, a
+human can do with the same endpoints and the same wallet.
 
-## Prerequisites for any skill
+## Prerequisites
 
-Two things you need before any cc0.company API call works:
+Two things before any authenticated cc0.company call works:
 
-1. **A Base EVM wallet**. Recommended: [Coinbase CDP
-   SDK](https://docs.cdp.coinbase.com/) or [Base
-   MCP](https://blog.base.org/base-mcp) (Agentic Wallet, MPC + Nitro
-   Enclave, native x402). Any viem-compatible signer works too —
-   raw private key, exported wallet, etc. [Bankr](https://bankr.bot)
-   is supported as a fallback for HTTP-only runtimes (config caveats
-   apply — see `erc1155-mint/SKILL.md`).
+1. **An EVM wallet.** Base for everything; NFT collections can also deploy on
+   Ethereum mainnet (the factory is live on both chains). Recommended:
+   [Coinbase CDP SDK](https://docs.cdp.coinbase.com/) or any viem-compatible
+   signer (raw private key, exported wallet). [Bankr](https://bankr.bot) works
+   for HTTP-only runtimes — config caveats apply, see
+   [`agentic-marketplace/x402-payments/SKILL.md`](./agentic-marketplace/x402-payments/SKILL.md).
 
-2. **An agent profile on cc0.company**. Auto-created on your first
-   paid x402 invoke; the 202 response carries `agent.api_key` (shown
-   once — save it). Send it on every subsequent call as either
-   `Authorization: Bearer <key>` or `X-Agent-API-Key: <key>`.
+2. **Wallet-signature auth — your wallet IS your identity.** Register once
+   with `POST /api/store/agents/register`, proving wallet control by signing
+   `cc0.company:agent-register:{unix_ms}`. Then authenticate every
+   `/api/store/agents/me/*` call by signing
+   `cc0.company:agent-auth:{unix_ms}` and sending the header trio
+   `X-Owner-Address` / `X-Owner-Signature` / `X-Owner-Message`. Signatures
+   are valid 15 minutes; sign fresh per request. EOA and EIP-1271 smart
+   wallets both work. Drop-in helper:
+   [`nft-collections/examples/agent-sign.mjs`](./nft-collections/examples/agent-sign.mjs).
+   Legacy API keys (`Authorization: Bearer` / `X-Agent-API-Key`) are still
+   accepted during the transition.
+
+### How you pay
+
+- **NFT collection routes** cost **ETH**: you sign deploy/config txs from your
+  own wallet, and upload routes use an HTTP-402-style quote → plain ETH
+  transfer → retry with `payment_tx_hash`. No x402 involved.
+- **Marketplace services** (image gen, data, mfergpt) are paid in **USDC via
+  x402 v2** — client code in
+  [`agentic-marketplace/x402-payments/SKILL.md`](./agentic-marketplace/x402-payments/SKILL.md).
+- **Token launches** cost gas only.
 
 ## Public API base
 
@@ -80,26 +104,23 @@ https://cc0.company/api
 ```
 
 All endpoints used by these skills live under there. See
-[`https://cc0.company/skill.md`](https://cc0.company/skill.md) for
-the full HTTP-level API reference (a flat dump of every endpoint
-the platform exposes, kept in sync with the codebase). The skills
-in this repo are the **structured, scenario-driven** layer on top.
+[`https://cc0.company/skill.md`](https://cc0.company/skill.md) for the flat
+HTTP-level API reference (every endpoint the platform exposes, kept in sync
+with the codebase) and [`https://cc0.company/llms.txt`](https://cc0.company/llms.txt)
+for the compact marketplace-services entry point. The skills in this repo are
+the structured, scenario-driven layer on top.
 
 ## Updates
-
-Skills evolve as cc0.company ships features. To get the latest:
 
 ```bash
 cd ~/.claude/skills/cc0company  # or wherever you cloned
 git pull --ff-only
 ```
 
-PRs welcome — if you integrate cc0.company from an agent and notice
-something missing, file an issue or send a PR against the relevant
-`SKILL.md`.
+PRs welcome — if you integrate cc0.company from an agent and something is
+missing or wrong, file an issue or send a PR against the relevant `SKILL.md`.
 
 ## License
 
-Skills are CC0 — same as the outputs of every cc0.company model.
-Copy, fork, embed, train on, build commercial agents around. No
-attribution required.
+Skills are CC0 — same as the outputs of every cc0.company model. Copy, fork,
+embed, train on, build commercial agents around. No attribution required.

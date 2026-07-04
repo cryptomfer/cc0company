@@ -11,6 +11,10 @@
 **Output license** : CC0 — reuse, repost, remix freely
 **Manifest** : https://cc0.company/.well-known/ai-tool/cc0-daily-brief.json
 
+Payment is the standard x402 v2 flow (402 challenge → sign EIP-3009 → retry
+with `PAYMENT-SIGNATURE`) — client code for every wallet type lives in
+[`../x402-payments/SKILL.md`](../x402-payments/SKILL.md).
+
 ## What you get back
 
 For each of the top 5 collections (ranked by 24h volume in USD) :
@@ -122,21 +126,26 @@ to compose her Normies tweet :
 ### A — Daily newsletter feeder (consume + reformat)
 
 Pay once a day, format the brief into your newsletter template,
-publish.
+publish. Uses the canonical `@x402/fetch` pattern (Pattern A in the
+x402 skill).
 
 ```ts
-import { createWalletClient, http } from "viem"
-import { base } from "viem/chains"
+import { x402Client, wrapFetchWithPayment } from "@x402/fetch"
+import { registerExactEvmScheme } from "@x402/evm/exact/client"
 import { privateKeyToAccount } from "viem/accounts"
-import { x402Client } from "@x402/core/client"
 
-const account = privateKeyToAccount(process.env.WALLET_PK as `0x${string}`)
-const wallet = createWalletClient({ account, chain: base, transport: http() })
-const x402 = x402Client(wallet)
+const signer = privateKeyToAccount(process.env.WALLET_PK as `0x${string}`)
+const client = new x402Client()
+registerExactEvmScheme(client, { signer })
+const fetchWithPayment = wrapFetchWithPayment(fetch, client)
 
-const brief = await x402.fetch(
+const brief = await fetchWithPayment(
   "https://cc0.company/api/store/agent-services/cc0-daily-brief/invoke",
-  { method: "POST", body: JSON.stringify({}) },
+  {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({}),
+  },
 ).then(r => r.json())
 
 // brief.collections[0..4] + brief.synthesis is your content
@@ -189,6 +198,10 @@ Three states worth handling :
 | `has_cache: true, freshness: "stale"` | Cron has been failing for 2h+ | Pay anyway (you'll get the last good payload) and check `latest_attempt_error` for diagnosis |
 | `has_cache: false, latest_attempt_error: "..."` | Builder is broken | Don't pay — your settle will 503 + cancel. File an issue with the error message. |
 
+A 503 (cache empty + lazy-build failed) auto-cancels your payment — you're
+never charged for a doomed call. General error semantics:
+[`../SKILL.md`](../SKILL.md).
+
 ## Data quality notes
 
 cc0.company is transparent about what's in the brief :
@@ -231,19 +244,9 @@ The cache hit means each call returns the same payload until the
 next hourly refresh — calling more often than once an hour gives
 you the same data, just costs more. Pick your cadence accordingly.
 
-## Errors
-
-| Status | Meaning | Recovery |
-|---|---|---|
-| 402 | Payment required (no PAYMENT-SIGNATURE header) | Sign the EIP-3009 USDC authorization, retry |
-| 200 | Success | Parse the payload |
-| 503 | Cache empty + lazy-build failed (likely OPENSEA_API_KEY missing upstream) | Payment is auto-cancelled, you're not charged. Retry in ≤60min OR check `/status` for the actual error. |
-| 500 | Unexpected backend error | Payment is auto-cancelled. Retry once with backoff. |
-
 ## Related
 
-- [`./SKILL.md`](./SKILL.md) — umbrella for data services
-- [`../agent-services/SKILL.md`](../agent-services/SKILL.md) —
-  image-gen services (different shape : async job_id-based)
-- [`../x402-payments/SKILL.md`](../x402-payments/SKILL.md) — x402
-  v2 signing patterns
+- [`./SKILL.md`](./SKILL.md) — umbrella for data services (incl. the
+  cc0pedia search / verify / market tools)
+- [`./cc0pedia.md`](./cc0pedia.md) — pairs naturally: cc0pedia for
+  *who/what/why*, daily-brief for *how it's trading*
