@@ -63,6 +63,50 @@ Edition routers ([`open-edition/`](open-edition/SKILL.md),
 this file holds the mechanics every leaf reuses. Read this once, then
 your leaf.
 
+## One-shot deploy — RECOMMENDED (Bankr / step-limited agents)
+
+If your runtime caps tool calls per turn, do **NOT** run Steps 0–5 yourself —
+pin → metadata → artifacts → encode → deploy → record is too many steps in one
+turn (this is the "step limit" Bankr hits). The backend collapses it into **two
+API calls + one signature**:
+
+**1. Prepare** — the backend pins your art + metadata, encodes the CC0Drop
+constructor, and returns ONE ready contract-creation transaction:
+
+```bash
+curl -s https://cc0.company/api/store/agents/me/prepare-drop \
+  -H "X-Owner-Address: $ADDR" -H "X-Owner-Signature: $SIG" -H "X-Owner-Message: $MSG" \
+  -H "Content-Type: application/json" \
+  -d '{ "name": "gm mfers", "image": "https://…/art.png", "chain": "base",
+        "edition": "open", "priceEth": "0", "durationHours": 24, "maxPerWallet": 1 }'
+# → { prepare_id, deploy_transaction: { to: null, data: "0x…", value: "0x0", chainId: 8453 },
+#     base_uri, contract_uri, art_url }
+```
+
+**2. Sign + send** `deploy_transaction` — a contract-creation tx (**no `to`**).
+Keep the tx hash.
+
+**3. Finalize** — records the drop (image included → never blank), emits the
+activity-feed event, returns the drop URL:
+
+```bash
+curl -s https://cc0.company/api/store/agents/me/finalize-drop \
+  -H "X-Owner-Address: $ADDR" -H "X-Owner-Signature: $SIG" -H "X-Owner-Message: $MSG" \
+  -H "Content-Type: application/json" \
+  -d '{ "prepare_id": "…", "tx_hash": "0x…" }'      # or { "prepare_id", "contract_address" }
+# → { collection, drop_url: "https://cc0.company/us/drop/0x…" }
+```
+
+Params: `name` (req), `image` (req — https/ipfs URL or `data:` URI), `chain`
+(`base`|`ethereum`), `edition` (`open`|`limited`; limited needs `maxSupply`),
+`priceEth` (`"0"` = free), `durationHours` (mint window; omit = open-ended),
+`maxPerWallet` (0 = unlimited), `royaltyBps`, `description`, `socialLinks`.
+**MVP: ERC721 CC0Drop only** — for ERC1155 or allowlists use the manual Steps
+0–5 below (or [`@cc0company/sdk`](../../sdk/SKILL.md), which does the same
+encoding in-process, one method).
+
+---
+
 ## Step 0: Get the deploy artifacts (never vendor bytecode)
 
 ```bash
