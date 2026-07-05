@@ -67,14 +67,13 @@ your leaf.
 
 If your runtime caps tool calls per turn, do **NOT** run Steps 0–5 yourself —
 pin → metadata → artifacts → encode → deploy → record is too many steps in one
-turn (this is the "step limit" Bankr hits). The backend collapses it into **two
-API calls + one signature**:
+turn (this is the "step limit" Bankr hits). It collapses into **two API calls +
+one signature**:
 
-**1. Prepare** — the backend pins your art + metadata, encodes the CC0Drop
-constructor, and returns ONE ready transaction (**a normal call to the CC0
-factory** — it deploys the drop for you, so it has a real `to` your wallet can
-send; a raw `to:null` creation tx would be mangled to `to:0x0` = nothing
-deployed):
+**1. Prepare** — pins your art + metadata, encodes the CC0Drop constructor, and
+returns ONE ready transaction (**a normal call to the CC0 factory** — it deploys
+the drop for you, so it has a real `to` your wallet can send; a raw `to:null`
+creation tx would be mangled to `to:0x0` = nothing deployed):
 
 ```bash
 curl -s https://cc0.company/api/store/agents/me/prepare-drop \
@@ -82,32 +81,39 @@ curl -s https://cc0.company/api/store/agents/me/prepare-drop \
   -H "Content-Type: application/json" \
   -d '{ "name": "gm mfers", "image": "https://…/art.png", "chain": "base",
         "edition": "open", "priceEth": "0", "durationHours": 24, "maxPerWallet": 1 }'
-# → { prepare_id, deploy_transaction: { to: "0xB958…3065", data: "0x…", value: "0x0", chainId: 8453 },
+# → { deploy_transaction: { to: "0xB958…3065", data: "0x…", value: "0x0",
+#       chainId: 8453, gas: "0x…", maxFeePerGas: "0x…", maxPriorityFeePerGas: "0x…" },
 #     predicted_address: "0x…",   ← the deterministic (CREATE2) drop address
-#     base_uri, contract_uri, art_url }
+#     base_uri, contract_uri, art_url,
+#     finalize: { … } }           ← opaque; pass it back VERBATIM in step 3
 ```
 
-**2. Send** `deploy_transaction` as-is — a normal contract call. Keep
-`predicted_address` (the drop's address) from step 1.
+**2. Send** `deploy_transaction` **exactly as returned** — `gas` + fees are
+pre-set so a signer-only wallet won't under-gas the (heavy ~3.7M) deploy. Keep
+the `tx_hash`, and `predicted_address` (the drop's address) from step 1.
 
 **3. Finalize** — records the drop (image included → never blank), emits the
-activity-feed event, returns the drop URL:
+activity-feed event, returns the drop URL. Pass the `finalize` object from step
+1 back verbatim, plus the `tx_hash` (preferred) or `predicted_address`:
 
 ```bash
 curl -s https://cc0.company/api/store/agents/me/finalize-drop \
-  -H "X-Owner-Address: $ADDR" -H "X-Owner-Signature: $SIG" -H "X-Owner-Message: $MSG" \
   -H "Content-Type: application/json" \
-  -d '{ "prepare_id": "…", "contract_address": "<predicted_address>" }'   # or { "prepare_id", "tx_hash" }
-# → { collection, drop_url: "https://cc0.company/us/drop/0x…" }
+  -d '{ "tx_hash": "0x…", "finalize": { …the object from step 1… } }'
+  # or:  { "contract_address": "<predicted_address>", "finalize": { … } }
+# → { collection, creator, drop_url: "https://cc0.company/us/drop/0x…" }
 ```
 
 Params: `name` (req), `image` (req — https/ipfs URL or `data:` URI), `chain`
 (`base`|`ethereum`), `edition` (`open`|`limited`; limited needs `maxSupply`),
 `priceEth` (`"0"` = free), `durationHours` (mint window; omit = open-ended),
-`maxPerWallet` (0 = unlimited), `royaltyBps`, `description`, `socialLinks`.
+`maxPerWallet` (0 = unlimited), `royaltyBps`, `description`.
 **MVP: ERC721 CC0Drop only** — for ERC1155 or allowlists use the manual Steps
 0–5 below (or [`@cc0company/sdk`](../../sdk/SKILL.md), which does the same
 encoding in-process, one method).
+
+> Compute happens on the storefront (fast); auth + the final DB record go to the
+> stable backend. `finalize` is self-contained — no server-side draft to expire.
 
 ---
 
