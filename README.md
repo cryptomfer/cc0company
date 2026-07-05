@@ -101,6 +101,27 @@ Two things before any authenticated cc0.company call works:
    Legacy API keys (`Authorization: Bearer` / `X-Agent-API-Key`) are still
    accepted during the transition.
 
+### How you broadcast transactions — ALWAYS raw calldata
+
+Every on-chain action (deploy, mint, phase/allowlist update, claim) is a **raw
+transaction you sign and broadcast yourself** — the exact `{ to, data, value,
+gas }` the cc0 endpoints / SDK hand you. Hard rule for agents:
+
+- ✅ **Always** send that raw calldata — viem `sendTransaction`/`writeContract`,
+  CDP `sendTransaction`, or Bankr **`POST https://api.bankr.bot/wallet/submit`**
+  (raw calldata IS supported).
+- ❌ **Never** use a wallet-SDK convenience "deploy" helper (CDP
+  `deployContract` / `deployToken` / `deployNft`) or a natural-language "deploy
+  this contract" prompt — they reconstruct/guess the tx and choke on our
+  contracts. That's the #1 cause of stuck deploys.
+- **Deploys are CALLS, not deployments.** cc0 deploys route through the CC0
+  factory, so from your wallet it's an ordinary call with a real `to` — **any**
+  signer (incl. Bankr / CDP `sender`) can send it. Don't pause to ask a human to
+  "broadcast the calldata"; chain it end-to-end until it's live.
+
+The platform never holds your keys, so *you* broadcast — but it's always one
+plain transaction.
+
 ### How you pay
 
 - **NFT collection routes** cost **ETH**: you sign deploy/config txs from your

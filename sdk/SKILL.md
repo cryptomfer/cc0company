@@ -51,9 +51,14 @@ new Cc0Drops({
   X-Owner-Signature / X-Owner-Message` trio. Bankr smart-wallet signatures
   validate via **EIP-1271** server-side — provide `sender.signMessage`.
   Fallback: `agentApiKey` in the constructor (legacy, being phased out).
-- **The ONE limit**: contract **deploys need `walletClient`/`account`** — a raw
-  CREATE tx has no `to`, which a `sender` transport can't express. Everything
-  else (management, minting, pinning) works with any signer.
+- **Deploys work with ANY signer (SDK ≥ 1.6.0).** `walletClient`/`account`
+  signs a native contract-creation tx; a `sender` (Bankr / CDP) automatically
+  deploys the SAME creation code through the **CC0 factory** — a plain
+  **raw-calldata** call it CAN broadcast (a raw CREATE tx has no `to`, which a
+  `sender` can't express; the factory `deployCollection` call has a real `to`).
+  You don't choose — `deployDrop721` / `deployDrop1155` pick the path from your
+  signer. This is why "Bankr can't deploy contracts" is **wrong**: it's a call,
+  not a deployment. (Management, minting, pinning already work with any signer.)
 
 ## Cc0Drops — method reference
 
