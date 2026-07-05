@@ -67,8 +67,20 @@ your leaf.
 
 If your runtime caps tool calls per turn, do **NOT** run Steps 0–5 yourself —
 pin → metadata → artifacts → encode → deploy → record is too many steps in one
-turn (this is the "step limit" Bankr hits). It collapses into **two API calls +
-one signature**:
+turn (this is the "step limit" Bankr hits).
+
+> **Can you run Node / the SDK? (e.g. a CDP-wallet agent.)** Then the simplest
+> path is **ONE method** — `@cc0company/sdk` ≥ 1.7.0:
+> ```ts
+> await new Cc0Drops({ sender }).launchDrop721({
+>   name: 'gm mfers', symbol: 'GMMFERS', image: pngBytes, maxSupply: 0,
+>   publicPhase: { priceEth: '0', maxPerWallet: 1, end: Math.floor(Date.now()/1000)+24*3600 },
+> })  // pins + deploys + records → live on cc0.company
+> ```
+> See [`../../sdk/SKILL.md`](../../sdk/SKILL.md). Fewest steps = best odds under a
+> step/rate limit. Otherwise, the HTTP two-call flow below:
+
+The HTTP path collapses into **two API calls + one signature**:
 
 > ### ⚡ Run this end-to-end. Do NOT stop to ask a human to broadcast.
 > **`deploy_transaction` is NOT a "contract deployment".** It is a **plain

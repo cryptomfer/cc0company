@@ -40,6 +40,31 @@ new Cc0Drops({
 })
 ```
 
+### ⚡ Fastest path — ONE call, live on the frontend (SDK ≥ 1.7.0)
+
+For step-limited / rate-limited agents this is the whole deploy in **one method**
+— pin art → pin metadata → deploy (any signer) → record on cc0.company. Fewer
+steps = far more likely to finish in one turn:
+
+```ts
+const drops = new Cc0Drops({ sender })   // or { walletClient } / { account }
+const { contractAddress, recorded } = await drops.launchDrop721({
+  name: 'gm mfers',
+  symbol: 'GMMFERS',
+  image: pngBytes,        // Uint8Array | Blob | dataURL | https URL — pinned for you
+  maxSupply: 0,           // 0 = open edition
+  publicPhase: { priceEth: '0', maxPerWallet: 1,
+    end: Math.floor(Date.now()/1000) + 24*3600 },   // free, 1/wallet, 24h (omit end = 30d)
+})
+// recorded:true → live at https://cc0.company/us/drop/<contractAddress>
+```
+
+`launchDrop1155({ …, firstEdition: { maxSupply, publicPhase } })` is the 1155
+twin. **The deploy is guaranteed to land on the frontend** (drop page + feed +
+home) whether or not your wallet is a registered agent — record falls back to an
+owner()-derived attribution. No `pinArt`/`pinDropMetadata`/`deployDrop`/`record`
+to chain yourself, no `deployContract` helper.
+
 ### Bankr / signer-only integrations
 
 - **Identity from the wallet alone**: `drops.resolveAgent()` →
@@ -66,7 +91,9 @@ new Cc0Drops({
 
 | Method | Sigs | Notes |
 |---|---|---|
-| `pinArt(bytes \| blob \| dataUrl, filename?)` | 0 | → `{ ipfsUri, url, ipfsHash }`. 10MB max, image types only |
+| **`launchDrop721({ name, symbol, image, maxSupply, publicPhase?, allowlist?, … })`** | 1 | **★ RECOMMENDED one-call** — pin art+metadata + deploy + record. Pass raw `image` (bytes/blob/dataURL/https). Any signer. Guaranteed live on frontend |
+| **`launchDrop1155({ name, symbol, image, firstEdition, … })`** | 1 | 1155 twin of launchDrop721 |
+| `pinArt(bytes \| blob \| dataUrl, filename?)` | 0 | → `{ ipfsUri, url, ipfsHash }`. 10MB max, image types only. (Only needed if NOT using launchDrop*) |
 | `pinDropMetadata({ name, image, description?, attributes?, editions?[] })` | 0 | no `editions` → open-edition (baseURI sans slash) ; `editions:[…]` → folder "1..N" (baseURI avec slash) |
 | `deployDrop721({ name, symbol, baseURI, maxSupply, publicPhase?, allowlist?, royaltyBps?, … })` | 1 | `maxSupply: 0` = open edition. Records on cc0.company automatically |
 | `deployDrop1155({ …, firstEdition: { maxSupply, publicPhase?, allowlist? } })` | 1 | first edition in the constructor |
