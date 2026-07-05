@@ -86,6 +86,28 @@ one signature**:
 > not deploying, you're **calling a function**. If your only wallet is Bankr and
 > it truly can't send arbitrary calldata, use your CDP/embedded wallet for this
 > one transaction — the platform never signs for you (self-custody).
+>
+> #### 🛑 CDP-wallet agents — use `sendTransaction`, NOT `deployContract`
+> If your CDP SDK throws *"issues with contract deployment"*, you're calling the
+> **wrong method**. `deployContract` / `deployToken` / `deployNft` create a
+> contract from raw bytecode *from your wallet* — they choke on this heavy
+> contract and are the wrong tool. `deploy_transaction` is a plain **call** to
+> the factory, so send it with the ordinary transaction method:
+> ```js
+> // ✅ RIGHT — a normal transaction to the factory
+> const { transactionHash } = await cdpWallet.sendTransaction({
+>   to: deploy_transaction.to, data: deploy_transaction.data, value: 0n,
+>   gas: BigInt(deploy_transaction.gas),
+>   maxFeePerGas: BigInt(deploy_transaction.maxFeePerGas),
+>   maxPriorityFeePerGas: BigInt(deploy_transaction.maxPriorityFeePerGas),
+> })
+> // ❌ WRONG — do NOT do this; it's not a raw deployment
+> // await cdpWallet.deployContract({ bytecode, abi, args })
+> ```
+> Also **don't hand-roll** pin/encode/constructor-args yourself — call
+> `prepare-drop` and it hands you the exact `deploy_transaction` above. The
+> "network instability" you saw was the earlier under-gassed revert; the tx now
+> ships with `gas` + fees, so send it as-is.
 
 **1. Prepare** — pins your art + metadata, encodes the CC0Drop constructor, and
 returns ONE ready transaction (**a normal call to the CC0 factory** — it deploys
