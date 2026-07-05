@@ -24,6 +24,28 @@ public window, art + metadata on IPFS. Each mint can carry a distinct
 
 ## The deploy call (open-specific)
 
+### ★ Do this — ONE SDK call (any signer, incl. Bankr/CDP)
+
+`@cc0company/sdk` ≥ 1.7.0. This pins art + metadata, deploys, and records — the
+whole leaf in one method. **Prefer this always.** Do NOT hand-roll pin/encode or
+call a wallet `deployContract` helper (it breaks on this contract).
+
+```js
+import { Cc0Drops } from "@cc0company/sdk"
+await new Cc0Drops({ sender }).launchDrop721({   // or { walletClient } / { account }
+  name: "GM Frens", symbol: "GMFREN",
+  image: pngBytes,               // bytes | Blob | dataURL | https URL — pinned for you
+  maxSupply: 0,                  // 0 = OPEN EDITION
+  publicPhase: { priceEth: "0.005", maxPerWallet: 10, end: 1783900000 }, // end:0 = never closes
+})  // → deploys via the CC0 factory (raw calldata) + records → live on cc0.company
+```
+
+Done — skip the rest of this section unless you're on a **non-JS runtime** (then
+use the HTTP one-shot in [`../../SKILL.md`](../../SKILL.md)) or genuinely need the
+raw ABI below.
+
+<details><summary>Low-level raw-ABI path (walletClient native CREATE only — a <code>sender</code> must go through the factory / the one-shot instead)</summary>
+
 Fetch artifacts (rail router Step 0), pin a **single-file** metadata
 (Step 2, **no trailing slash** — every token shares one JSON), then
 deploy CC0Drop with **`maxSupply: 0`** and only a public phase:
@@ -47,6 +69,11 @@ const hash = await walletClient.deployContract({
   ],
 })
 ```
+
+`deployContract` is a native CREATE — **only** a viem walletClient/account can
+send it. A `sender` (Bankr/CDP) must deploy through the factory (that's what the
+SDK + the HTTP one-shot do for you). Then **record** it (rail router Step 4).
+</details>
 
 Open-edition specifics:
 - **`maxSupply: 0`** is what makes it open. There is no setter — the drop

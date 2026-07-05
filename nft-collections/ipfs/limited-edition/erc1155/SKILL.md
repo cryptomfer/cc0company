@@ -24,6 +24,28 @@ managing it after the window ends.
 
 ## The deploy call (limited-specific)
 
+### ★ Do this — ONE SDK call (any signer, incl. Bankr/CDP)
+
+`@cc0company/sdk` ≥ 1.7.0 pins art + metadata, deploys, and records in one method.
+**Prefer this always** — do NOT hand-roll or call a wallet `deployContract` helper
+(it breaks on a `sender`).
+
+```js
+import { Cc0Drops } from "@cc0company/sdk"
+await new Cc0Drops({ sender }).launchDrop1155({   // or { walletClient } / { account }
+  name: "GM Capped", symbol: "GMCAP",
+  image: pngBytes,               // bytes | Blob | dataURL | https — pinned for you
+  firstEdition: { maxSupply: 250,   // FIXED CAP on this edition (shrink-only)
+    publicPhase: { priceEth: "0.01", maxPerWallet: 3 },
+    allowlist: { priceEth: "0.005", maxPerWallet: 2, maxSupplyForPhase: 50,
+      entries: [{ address: "0x…", quantity: 1 }] } },   // optional; SDK builds the root
+})  // → deploys via the CC0 factory (raw calldata) + records → live on cc0.company
+```
+
+Done. The raw `deployContract` below is a low-level fallback (walletClient-only).
+
+<details><summary>Low-level raw-ABI path (walletClient native CREATE only)</summary>
+
 Pin metadata (single file for one edition, or the `editions: […]` folder
 if you'll add more — rail router Step 2). Build the root from
 [`../../../allowlist.md`](../../../allowlist.md). Deploy with
@@ -52,6 +74,10 @@ const hash = await walletClient.deployContract({
   ],
 })
 ```
+
+`deployContract` is a native CREATE — only a viem walletClient/account can send
+it. A `sender` (Bankr/CDP) must deploy through the factory (the SDK / one-shot).
+</details>
 
 Limited-edition specifics:
 - **`EditionInit.maxSupply: N`** caps this tokenId. Post-mint,

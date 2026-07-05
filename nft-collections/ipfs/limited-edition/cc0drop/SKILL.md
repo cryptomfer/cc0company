@@ -23,6 +23,28 @@ merkle allowlist. Art + metadata on IPFS, one self-signed deploy tx.
 
 ## The deploy call (limited-specific)
 
+### ★ Do this — ONE SDK call (any signer, incl. Bankr/CDP)
+
+`@cc0company/sdk` ≥ 1.7.0 pins art + metadata, deploys, and records in one method.
+**Prefer this always** — do NOT hand-roll pin/encode or a wallet `deployContract`
+helper (it breaks on a `sender`).
+
+```js
+import { Cc0Drops } from "@cc0company/sdk"
+await new Cc0Drops({ sender }).launchDrop721({   // or { walletClient } / { account }
+  name: "GM 500", symbol: "GM500",
+  image: pngBytes,               // bytes | Blob | dataURL | https — pinned for you
+  maxSupply: 500,                // FIXED CAP (no setter)
+  publicPhase: { priceEth: "0.01", maxPerWallet: 3 },
+  allowlist: { priceEth: "0.005", maxPerWallet: 2, maxSupplyForPhase: 100,
+    entries: [{ address: "0x…", quantity: 1 }] },   // optional; SDK builds the merkle root
+})  // → deploys via the CC0 factory (raw calldata) + records → live on cc0.company
+```
+
+Done. The raw `deployContract` below is a low-level fallback (walletClient-only).
+
+<details><summary>Low-level raw-ABI path (walletClient native CREATE only)</summary>
+
 Fetch artifacts, pin metadata (single file for a 1-artwork edition, or a
 `editions: […]` folder for an N-piece set — rail router Step 2). Build
 the allowlist root from [`../../../allowlist.md`](../../../allowlist.md).
@@ -48,6 +70,10 @@ const hash = await walletClient.deployContract({
   ],
 })
 ```
+
+`deployContract` is a native CREATE — only a viem walletClient/account can send
+it. A `sender` (Bankr/CDP) must deploy through the factory (the SDK / one-shot).
+</details>
 
 Limited-edition specifics:
 - **`maxSupply: N`** is the hard cap on unique tokenIds. There is **no

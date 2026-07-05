@@ -23,6 +23,26 @@ fungible editions).
 
 ## The deploy call (open-specific)
 
+### ★ Do this — ONE SDK call (any signer, incl. Bankr/CDP)
+
+`@cc0company/sdk` ≥ 1.7.0 pins art + metadata, deploys, and records in one method.
+**Prefer this always** — do NOT hand-roll or call a wallet `deployContract` helper
+(it breaks on a `sender`).
+
+```js
+import { Cc0Drops } from "@cc0company/sdk"
+await new Cc0Drops({ sender }).launchDrop1155({   // or { walletClient } / { account }
+  name: "GM Editions", symbol: "GMED",
+  image: pngBytes,               // bytes | Blob | dataURL | https — pinned for you
+  firstEdition: { maxSupply: 0,  // 0 = OPEN EDITION (unlimited copies of tokenId 1)
+    publicPhase: { priceEth: "0.001", maxPerWallet: 0, end: 1783900000 } },
+})  // → deploys via the CC0 factory (raw calldata) + records → live on cc0.company
+```
+
+Done. The raw `deployContract` below is a low-level fallback (walletClient-only).
+
+<details><summary>Low-level raw-ABI path (walletClient native CREATE only)</summary>
+
 Pin metadata (rail router Step 2). While the contract has exactly ONE
 edition you may use the single-file shape (no trailing slash); the moment
 you'll add a second edition, use the `editions: […]` folder shape
@@ -51,6 +71,10 @@ const hash = await walletClient.deployContract({
   ],
 })
 ```
+
+`deployContract` is a native CREATE — only a viem walletClient/account can send
+it. A `sender` (Bankr/CDP) must deploy through the factory (the SDK / one-shot).
+</details>
 
 - **`EditionInit.maxSupply: 0`** = open edition on this tokenId.
 - `end: 0` = never closes; a set `end` closes the window (and triggers
