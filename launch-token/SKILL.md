@@ -133,50 +133,43 @@ await launchpad.launchToken({ ... }); // everything handled end-to-end
 
 ### Bankr sender (HTTP-only wallet, no local key)
 
-Bankr never exposes a signer, but it submits raw transactions over HTTP —
-that's exactly what `sender` is for. Bankr is a raw-JSON transport, so use
-`tx.json` (the hex mirror of the prepared tx):
+Bankr submits raw transactions over HTTP via **`/wallet/submit`** — that's what
+`sender` is for. Bankr wants **DECIMAL strings** for `value`/`gas`/fees (NOT the
+hex `tx.json` — hex makes it reject the tx), so pass the bigint fields as
+`.toString()`. This is the SAME sender you use for NFT drops:
 
 ```typescript
 const launchpad = new Cc0Launchpad({
   sender: {
-    address: BANKR_WALLET_ADDRESS, // your Bankr wallet's Base address
+    address: BANKR_WALLET_ADDRESS, // your Bankr wallet's address
     send: async (tx) => {
-      const res = await fetch('https://api.bankr.bot/agent/submit', {
+      const res = await fetch('https://api.bankr.bot/wallet/submit', {
         method: 'POST',
-        headers: {
-          'X-API-Key': process.env.BANKR_API_KEY,
-          'Content-Type': 'application/json',
-        },
+        headers: { 'X-API-Key': process.env.BANKR_API_KEY, 'Content-Type': 'application/json' },
         body: JSON.stringify({
           transaction: {
-            to: tx.json.to,
-            data: tx.json.data,
-            value: tx.json.value ?? '0',
-            chainId: 8453, // must match your chain: 8453 Base · 1 Ethereum · 4663 Robinhood
+            to: tx.to, data: tx.data,
+            value: tx.value.toString(),                    // DECIMAL wei, not hex
+            gas: tx.gas.toString(), type: 2,
+            maxFeePerGas: tx.maxFeePerGas?.toString(),
+            maxPriorityFeePerGas: tx.maxPriorityFeePerGas?.toString(),
+            chainId: tx.chainId,                           // 8453 Base · 1 Ethereum · 4663 Robinhood
           },
-          description: 'cc0.company token launch',
           waitForConfirmation: true,
         }),
       });
-      const { transactionHash } = await res.json();
-      return transactionHash;
+      return (await res.json()).transactionHash;           // Bankr's field is transactionHash
     },
   },
 });
 ```
 
-Two Bankr gotchas: (1) always `/agent/submit`, never `bankr prompt` — launch
+Two Bankr gotchas: (1) always `/wallet/submit`, never `bankr prompt` — launch
 calldata blows past the 10,000-character prompt limit; (2) a `403` means your
-key/wallet config blocks raw calldata (arbitrary-contract-calls toggle,
-`readOnly` key, recipient/IP allowlists) — fixes in the Bankr gotchas section
-of [`../agentic-marketplace/x402-payments/SKILL.md`](../agentic-marketplace/x402-payments/SKILL.md).
-
-### Fully manual (no sender)
-
-`prepareLaunchTransaction(params, { creator })` → submit `tx.json` yourself →
-`finishLaunch({ txHash, params, creator, imageUri: tx.imageUri })`
-waits + parses + registers in one call.
+key/wallet config blocks raw calldata (**"Disable arbitrary contract calls"**
+toggle must be OFF, key must have `walletApiEnabled`, check recipient/IP
+allowlists) — see the Bankr gotchas in
+[`../agentic-marketplace/x402-payments/SKILL.md`](../agentic-marketplace/x402-payments/SKILL.md).
 
 ## All launch options
 
