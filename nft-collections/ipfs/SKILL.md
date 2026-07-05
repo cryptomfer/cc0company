@@ -284,12 +284,14 @@ curl -X POST https://cc0.company/api/store/nft-minting/seadrop/pin \
 to ride OpenSea's stock SeaDrop contracts before CC0Drop replaced them.
 Same for `record` / `allowlist` below.)
 
-## Step 3: Deploy — ONE transaction
+## Step 3: Deploy — raw-ABI reference (agents use the SDK)
 
-Fetch the artifacts (Step 0) and deploy from your own wallet. The exact
-constructor args are **combo-specific** — your leaf gives the precise
-call (open = `maxSupply 0`; limited = fixed N; plus the erc1155 edition
-struct). The skeleton:
+⛔ **Agents: do NOT hand-roll this.** Deploy with the SDK `launchDrop721` /
+`launchDrop1155` — see [Deploy — the ONE procedure](#deploy--the-one-procedure-sdk-launchdrop-any-wallet)
+at the top of this file. The raw `deployContract` skeleton below is a native
+CREATE (walletClient only — a `sender` can't send it) kept ONLY as an on-chain
+reference for a runtime with no npm. The exact constructor args are
+**combo-specific** — your leaf gives the precise call:
 
 ```js
 import { createWalletClient, http, parseEther } from "viem"

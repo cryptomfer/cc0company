@@ -165,7 +165,7 @@ curl -X POST https://cc0.company/api/store/agent-services/sartoshi-gen/invoke \
 ### Bankr API key gotchas
 
 Three separate flags can each cause a `403 Forbidden` on `/wallet/sign` or
-`/agent/submit`:
+`/wallet/submit`:
 
 1. **"Disable arbitrary contract calls"** toggle (default ON for new
    accounts). Blocks raw deploys / mints / custom contract calls. Fix:
