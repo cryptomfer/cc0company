@@ -40,55 +40,19 @@ await new Cc0Drops({ sender }).launchDrop721({   // or { walletClient } / { acco
 })  // → deploys via the CC0 factory (raw calldata) + records → live on cc0.company
 ```
 
-Done — skip the rest of this section unless you're on a **non-JS runtime** (then
-use the HTTP one-shot in [`../../SKILL.md`](../../SKILL.md)) or genuinely need the
-raw ABI below.
+That's the whole deploy — it's live at `https://cc0.company/drop/{addr}`,
+recorded automatically. Any signer works (walletClient / CDP / Bankr `sender`).
 
-<details><summary>Low-level raw-ABI path (walletClient native CREATE only — a <code>sender</code> must go through the factory / the one-shot instead)</summary>
-
-Fetch artifacts (rail router Step 0), pin a **single-file** metadata
-(Step 2, **no trailing slash** — every token shares one JSON), then
-deploy CC0Drop with **`maxSupply: 0`** and only a public phase:
-
-```js
-const hash = await walletClient.deployContract({
-  abi: contracts.erc721.abi,
-  bytecode: contracts.erc721.bytecode,
-  args: [
-    "GM Frens", "GMFREN",
-    baseURI, contractURI,          // from seadrop/pin (single-file: no trailing slash)
-    0n,                            // maxSupply 0 = OPEN EDITION
-    "0x0000000000000000000000000000000000000000",   // paymentToken 0x0 = ETH
-    { enabled: true,  price: parseEther("0.005"), start: 0n, end: 1783900000n, maxPerWallet: 10 },
-    { enabled: false, price: 0n, start: 0n, end: 0n, maxPerWallet: 0, maxSupplyForPhase: 0 }, // no allowlist
-    "0x0000000000000000000000000000000000000000000000000000000000000000",   // initialMerkleRoot = none
-    [{ recipient: myWallet, percentage: 10000 }],   // your 95% (platform 5% added in-contract)
-    myWallet, 500,                 // royalty recipient + 500 bps (5%)
-    platformFeeRecipient,          // ← from artifacts endpoint
-    myWallet,                      // owner
-  ],
-})
-```
-
-`deployContract` is a native CREATE — **only** a viem walletClient/account can
-send it. A `sender` (Bankr/CDP) must deploy through the factory (that's what the
-SDK + the HTTP one-shot do for you). Then **record** it (rail router Step 4).
-</details>
-
-Open-edition specifics:
+Open-edition specifics (passed to `launchDrop721`):
 - **`maxSupply: 0`** is what makes it open. There is no setter — the drop
   is open for its whole life.
 - Scarcity is the window: set `publicPhase.end` to close it, or `end: 0`
   to never close.
 - **`start: 0` / `end: 0` = unbounded** on that side; `maxPerWallet: 0` =
   uncapped per wallet (usually set a cap to spread distribution).
-- Allowlist-only early window? Set `publicPhase.enabled: false` and
-  configure the allowlist phase instead (recipe:
-  [`../../../allowlist.md`](../../../allowlist.md); persist the preimage
-  per the rail router).
-
-Then **record** it (`drop_contract: "cc0drop"`, `max_supply: "0"`) —
-rail router Step 4 — and it's live at `https://cc0.company/drop/{addr}`.
+- Allowlist-only early window? Pass an `allowlist` with `enabled: false` public
+  phase (recipe: [`../../../allowlist.md`](../../../allowlist.md); `launchDrop721`
+  builds + persists the merkle preimage for you).
 
 ## Numbered "#N" identity (the open-edition win)
 

@@ -42,42 +42,8 @@ await new Cc0Drops({ sender }).launchDrop1155({   // or { walletClient } / { acc
 })  // → deploys via the CC0 factory (raw calldata) + records → live on cc0.company
 ```
 
-Done. The raw `deployContract` below is a low-level fallback (walletClient-only).
-
-<details><summary>Low-level raw-ABI path (walletClient native CREATE only)</summary>
-
-Pin metadata (single file for one edition, or the `editions: […]` folder
-if you'll add more — rail router Step 2). Build the root from
-[`../../../allowlist.md`](../../../allowlist.md). Deploy with
-`EditionInit.maxSupply: N`:
-
-```js
-const hash = await walletClient.deployContract({
-  abi: contracts.erc1155.abi,
-  bytecode: contracts.erc1155.bytecode,
-  args: [
-    "GM Capped", "GMCAP",
-    baseURI, contractURI,
-    "0x0000000000000000000000000000000000000000",   // ETH
-    {                              // EditionInit
-      tokenId: 1,
-      maxSupply: 250n,             // ← FIXED CAP on this edition (shrink-only after mint)
-      publicPhase:    { enabled: true, price: parseEther("0.01"),  start: 1783300000n, end: 0n, maxPerWallet: 3 },
-      allowlistPhase: { enabled: true, price: parseEther("0.005"), start: 1783200000n, end: 1783300000n,
-                        maxPerWallet: 2, maxSupplyForPhase: 50 },
-      merkleRoot,                  // ← from allowlist.md (bytes32(0) if none)
-    },
-    [{ recipient: myWallet, percentage: 10000 }],   // your 95%
-    myWallet, 500,                 // royalty recipient + bps
-    platformFeeRecipient,          // ← from artifacts endpoint
-    myWallet,                      // owner
-  ],
-})
-```
-
-`deployContract` is a native CREATE — only a viem walletClient/account can send
-it. A `sender` (Bankr/CDP) must deploy through the factory (the SDK / one-shot).
-</details>
+That's the whole deploy — live + recorded automatically. Any signer works
+(walletClient / CDP / Bankr `sender`).
 
 Limited-edition specifics:
 - **`EditionInit.maxSupply: N`** caps this tokenId. Post-mint,

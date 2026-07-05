@@ -63,22 +63,35 @@ Edition routers ([`open-edition/`](open-edition/SKILL.md),
 this file holds the mechanics every leaf reuses. Read this once, then
 your leaf.
 
-## One-shot deploy — RECOMMENDED (Bankr / step-limited agents)
+## Deploy — the ONE procedure (SDK `launchDrop*`, any wallet)
 
-If your runtime caps tool calls per turn, do **NOT** run Steps 0–5 yourself —
-pin → metadata → artifacts → encode → deploy → record is too many steps in one
-turn (this is the "step limit" Bankr hits).
+**Every drop deploys with one method — `@cc0company/sdk` ≥ 1.7.0.** No raw
+`deployContract`, no manual pin/encode/record, no HTTP dance to choose between.
+Plug your wallet in as a `sender` and call it:
 
-> **Can you run Node / the SDK? (e.g. a CDP-wallet agent.)** Then the simplest
-> path is **ONE method** — `@cc0company/sdk` ≥ 1.7.0:
-> ```ts
-> await new Cc0Drops({ sender }).launchDrop721({
->   name: 'gm mfers', symbol: 'GMMFERS', image: pngBytes, maxSupply: 0,
->   publicPhase: { priceEth: '0', maxPerWallet: 1, end: Math.floor(Date.now()/1000)+24*3600 },
-> })  // pins + deploys + records → live on cc0.company
-> ```
-> See [`../../sdk/SKILL.md`](../../sdk/SKILL.md). Fewest steps = best odds under a
-> step/rate limit. Otherwise, the HTTP two-call flow below:
+```ts
+import { Cc0Drops } from '@cc0company/sdk'
+const { contractAddress } = await new Cc0Drops({ sender }).launchDrop721({
+  name: 'gm mfers', symbol: 'GMMFERS',
+  image: pngBytes,      // bytes | Blob | dataURL | https — pinned for you
+  maxSupply: 0,         // 0 = open edition
+  publicPhase: { priceEth: '0', maxPerWallet: 1, end: Math.floor(Date.now()/1000)+24*3600 },
+})  // pins + deploys via the CC0 factory + records → live on cc0.company
+```
+
+- **`sender` = CDP OR Bankr, interchangeably** — the two `send()` implementations
+  are in [`../../sdk/SKILL.md`](../../sdk/SKILL.md). Same method, same result.
+- **`launchDrop1155({ …, firstEdition })`** for ERC-1155; the `allowlist` param
+  handles merkle allowlists. This ONE method covers every drop type.
+- Recording is automatic (a backend indexer also re-records within ~2 min as a
+  backstop). The hard requirement is just: call `launchDrop*` once.
+
+⛔ Do NOT hand-roll the steps below or call a wallet `deployContract`/`deployNft`
+helper — that's the failure loop this replaces. **Bankr note:** its
+`/wallet/submit` (used by the Bankr `sender`) needs the key's `walletApiEnabled`
++ the *"Disable arbitrary contract calls"* setting OFF.
+
+<details><summary>Raw HTTP/ABI reference — ONLY for a runtime that literally cannot run npm</summary>
 
 The HTTP path collapses into **two API calls + one signature**:
 
@@ -183,13 +196,9 @@ ask a human because finalize didn't run — the deploy IS the drop.
 Params: `name` (req), `image` (req — https/ipfs URL or `data:` URI), `chain`
 (`base`|`ethereum`), `edition` (`open`|`limited`; limited needs `maxSupply`),
 `priceEth` (`"0"` = free), `durationHours` (mint window; omit = open-ended),
-`maxPerWallet` (0 = unlimited), `royaltyBps`, `description`.
-**MVP: ERC721 CC0Drop only** — for ERC1155 or allowlists use the manual Steps
-0–5 below (or [`@cc0company/sdk`](../../sdk/SKILL.md), which does the same
-encoding in-process, one method).
-
-> Compute happens on the storefront (fast); auth + the final DB record go to the
-> stable backend. `finalize` is self-contained — no server-side draft to expire.
+`maxPerWallet` (0 = unlimited), `royaltyBps`, `description`. HTTP prepare-drop is
+**ERC721 only**; for ERC1155/allowlists use the SDK `launchDrop1155` / `allowlist`.
+</details>
 
 ---
 

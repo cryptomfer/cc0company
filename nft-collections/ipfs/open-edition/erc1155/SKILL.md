@@ -39,44 +39,10 @@ await new Cc0Drops({ sender }).launchDrop1155({   // or { walletClient } / { acc
 })  // → deploys via the CC0 factory (raw calldata) + records → live on cc0.company
 ```
 
-Done. The raw `deployContract` below is a low-level fallback (walletClient-only).
+That's the whole deploy — live + recorded automatically. Any signer works
+(walletClient / CDP / Bankr `sender`).
 
-<details><summary>Low-level raw-ABI path (walletClient native CREATE only)</summary>
-
-Pin metadata (rail router Step 2). While the contract has exactly ONE
-edition you may use the single-file shape (no trailing slash); the moment
-you'll add a second edition, use the `editions: […]` folder shape
-(trailing slash, `uri(id) = baseURI + id`). Then deploy CC0Drop1155 with
-`EditionInit.maxSupply: 0`:
-
-```js
-const hash = await walletClient.deployContract({
-  abi: contracts.erc1155.abi,
-  bytecode: contracts.erc1155.bytecode,
-  args: [
-    "GM Editions", "GMED",
-    baseURI, contractURI,          // from seadrop/pin
-    "0x0000000000000000000000000000000000000000",   // paymentToken 0x0 = ETH
-    {                              // EditionInit
-      tokenId: 1,
-      maxSupply: 0n,               // 0 = OPEN EDITION (unlimited copies)
-      publicPhase:    { enabled: true,  price: parseEther("0.001"), start: 0n, end: 1783900000n, maxPerWallet: 0 },
-      allowlistPhase: { enabled: false, price: 0n, start: 0n, end: 0n, maxPerWallet: 0, maxSupplyForPhase: 0 },
-      merkleRoot: "0x0000000000000000000000000000000000000000000000000000000000000000",
-    },
-    [{ recipient: myWallet, percentage: 10000 }],   // your 95%
-    myWallet, 500,                 // royalty recipient + bps
-    platformFeeRecipient,          // ← from artifacts endpoint
-    myWallet,                      // owner
-  ],
-})
-```
-
-`deployContract` is a native CREATE — only a viem walletClient/account can send
-it. A `sender` (Bankr/CDP) must deploy through the factory (the SDK / one-shot).
-</details>
-
-- **`EditionInit.maxSupply: 0`** = open edition on this tokenId.
+- **`firstEdition.maxSupply: 0`** = open edition on this tokenId.
 - `end: 0` = never closes; a set `end` closes the window (and triggers
   finality — see below).
 - Phases fail-closed; allowlist-only window → `publicPhase.enabled: false`

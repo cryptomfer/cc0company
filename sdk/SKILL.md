@@ -48,11 +48,51 @@ new Cc0Drops({
       })
       return transactionHash             // CDP's field is `transactionHash`, NOT `hash`
     },
-    // Raw-JSON relayers ONLY (never CDP): send: async (tx) => infra.sendTransaction(tx.json)
     signMessage: async (message) => infra.signMessage(message), // optional — see Bankr
   },
 })
+
+// 3b. BANKR — the SAME procedure as CDP; `send()` just POSTs to /wallet/submit.
+//     (Requires your Bankr key's walletApiEnabled + "Disable arbitrary contract
+//      calls" OFF — that toggle gates every Bankr call, SDK or not.)
+new Cc0Drops({
+  sender: {
+    address: bankrWalletAddress,
+    send: async (tx) => {
+      const res = await fetch('https://api.bankr.bot/wallet/submit', {
+        method: 'POST',
+        headers: { 'X-API-Key': process.env.BANKR_API_KEY, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          transaction: {
+            to: tx.to, data: tx.data,
+            value: tx.value.toString(),                    // DECIMAL strings for Bankr
+            gas: tx.gas.toString(), type: 2,
+            maxFeePerGas: tx.maxFeePerGas?.toString(),
+            maxPriorityFeePerGas: tx.maxPriorityFeePerGas?.toString(),
+            chainId: tx.chainId,
+          },
+          waitForConfirmation: true,
+        }),
+      })
+      return (await res.json()).transactionHash            // Bankr's field is transactionHash
+    },
+    signMessage: async (message) => {                      // Bankr /wallet/sign (personal_sign)
+      const res = await fetch('https://api.bankr.bot/wallet/sign', {
+        method: 'POST',
+        headers: { 'X-API-Key': process.env.BANKR_API_KEY, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ signatureType: 'personal_sign', message }),
+      })
+      return (await res.json()).signature
+    },
+  },
+})
 ```
+
+> **This is the ONE way agents deploy — CDP and Bankr are interchangeable
+> `sender`s.** Every NFT deploy (open/limited, 721/1155) is `launchDrop721` /
+> `launchDrop1155`. There is no separate "deployContract" or "prepare-drop HTTP"
+> procedure to choose between — plug your wallet in as a `sender` and call the
+> method.
 
 ### ⚡ Fastest path — ONE call, live on the frontend (SDK ≥ 1.7.0)
 

@@ -41,48 +41,15 @@ await new Cc0Drops({ sender }).launchDrop721({   // or { walletClient } / { acco
 })  // → deploys via the CC0 factory (raw calldata) + records → live on cc0.company
 ```
 
-Done. The raw `deployContract` below is a low-level fallback (walletClient-only).
+That's the whole deploy — live + recorded automatically. Any signer works
+(walletClient / CDP / Bankr `sender`).
 
-<details><summary>Low-level raw-ABI path (walletClient native CREATE only)</summary>
-
-Fetch artifacts, pin metadata (single file for a 1-artwork edition, or a
-`editions: […]` folder for an N-piece set — rail router Step 2). Build
-the allowlist root from [`../../../allowlist.md`](../../../allowlist.md).
-Then deploy with a **fixed `maxSupply`** and both phases wired:
-
-```js
-const hash = await walletClient.deployContract({
-  abi: contracts.erc721.abi,
-  bytecode: contracts.erc721.bytecode,
-  args: [
-    "GM 500", "GM500",
-    baseURI, contractURI,
-    500n,                          // maxSupply = 500  ← FIXED CAP (no setter, immutable)
-    "0x0000000000000000000000000000000000000000",   // ETH
-    { enabled: true,  price: parseEther("0.01"),  start: 1783300000n, end: 0n, maxPerWallet: 3 },  // public
-    { enabled: true,  price: parseEther("0.005"), start: 1783200000n, end: 1783300000n,            // allowlist window
-      maxPerWallet: 2, maxSupplyForPhase: 100 },
-    merkleRoot,                    // ← from allowlist.md (bytes32(0) if no allowlist)
-    [{ recipient: myWallet, percentage: 10000 }],   // your 95%
-    myWallet, 500,                 // royalty recipient + bps
-    platformFeeRecipient,          // ← from artifacts endpoint
-    myWallet,                      // owner
-  ],
-})
-```
-
-`deployContract` is a native CREATE — only a viem walletClient/account can send
-it. A `sender` (Bankr/CDP) must deploy through the factory (the SDK / one-shot).
-</details>
-
-Limited-edition specifics:
-- **`maxSupply: N`** is the hard cap on unique tokenIds. There is **no
-  setter** — it's fixed at deploy forever. (`ownerMint` / airdrops count
-  toward it — reserve headroom.)
-- **`maxSupplyForPhase`** on the allowlist phase caps how much of the
-  supply the allowlist window may consume (early access before public).
-- No allowlist? Pass `allowlistPhase.enabled: false` and
-  `initialMerkleRoot = bytes32(0)`.
+Limited-edition specifics (`launchDrop721` params):
+- **`maxSupply: N`** is the hard cap on unique tokenIds — fixed at deploy
+  forever, no setter. (`ownerMint` / airdrops count toward it — reserve headroom.)
+- **`maxSupplyForPhase`** on the `allowlist` caps how much of the supply the
+  allowlist window may consume (early access before public).
+- No allowlist? Just omit the `allowlist` param.
 - Phases fail-closed; `start/end 0` = unbounded on that side.
 
 Record with `max_supply: "500"`, `drop_contract: "cc0drop"` (rail router
