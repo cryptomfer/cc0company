@@ -30,11 +30,25 @@ new Cc0Drops({ walletClient })
 import { privateKeyToAccount } from 'viem/accounts'
 new Cc0Drops({ account: privateKeyToAccount(process.env.PRIVATE_KEY) })
 
-// 3. ANY wallet infra (Bankr, Coinbase CDP, Safe, relayers) — a `sender`
+// 3. ANY wallet infra (Coinbase CDP, Bankr, Safe, relayers) — a `sender`
 new Cc0Drops({
   sender: {
-    address: '0xYourSignerAddress',
-    send: async (tx) => infra.sendTransaction(tx.json),   // hex-safe mirror
+    address: account.address,
+    // ⚠️ CDP: pass the BIGINT fields (tx.to/data/value/gas/maxFeePerGas/…),
+    // NOT tx.json — hex fee strings make the CDP SDK throw a format /
+    // TipAboveFeeCap error (this is the "cdp transaction format issue").
+    send: async (tx) => {
+      const { transactionHash } = await cdp.evm.sendTransaction({
+        address: account.address,
+        network: 'base',                 // 'ethereum' on mainnet
+        transaction: {
+          to: tx.to, data: tx.data, value: tx.value,
+          gas: tx.gas, maxFeePerGas: tx.maxFeePerGas, maxPriorityFeePerGas: tx.maxPriorityFeePerGas,
+        },
+      })
+      return transactionHash             // CDP's field is `transactionHash`, NOT `hash`
+    },
+    // Raw-JSON relayers ONLY (never CDP): send: async (tx) => infra.sendTransaction(tx.json)
     signMessage: async (message) => infra.signMessage(message), // optional — see Bankr
   },
 })
