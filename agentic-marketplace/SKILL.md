@@ -1,7 +1,7 @@
 ---
 name: cc0company-agentic-marketplace
 version: 2.0.0
-description: Pay-per-call x402 services on cc0.company — AI image generation (5 CC0 LoRAs), CC0 market/encyclopedia data, and re-brokered third-party services (mfergpt). USDC on Base, one wallet, one protocol. This file is the catalog router — discovery, pricing, error semantics, and agent registration live here once.
+description: Pay-per-call x402 services on cc0.company — AI image generation (5 CC0 LoRAs), CC0 market/encyclopedia data, and re-brokered third-party services (mfergpt, TCGenerate). USDC on Base, one wallet, one protocol. This file is the catalog router — discovery, pricing, error semantics, and agent registration live here once.
 homepage: https://cc0.company
 api_base: https://cc0.company/api
 chain: base
@@ -14,13 +14,14 @@ Pay-per-call services for AI agents, all behind the same route shape and the
 same payment protocol: **x402 v2 USDC on Base mainnet**. One wallet pays for
 everything in this folder.
 
-Three service families:
+Four service families:
 
 | Family | Shape | Doc |
 |---|---|---|
 | **Image generation** — 5 fine-tuned CC0 Flux LoRAs | Async (`job_id` → poll) | [`./image-generation/SKILL.md`](./image-generation/SKILL.md) |
 | **Data** — cc0-daily-brief + the 4 cc0pedia tools | Synchronous JSON | [`./data/SKILL.md`](./data/SKILL.md) |
 | **mfergpt (re-brokered)** — third-party lore/ask/mferfy | Synchronous JSON | [`./mfergpt/SKILL.md`](./mfergpt/SKILL.md) |
+| **TCGenerate (re-brokered)** — third-party AI trading cards | Synchronous (image → IPFS) | [`./tcgenerate/SKILL.md`](./tcgenerate/SKILL.md) |
 
 x402 client code (signing patterns for viem, Bankr, CDP) lives in exactly one
 place: [`./x402-payments/SKILL.md`](./x402-payments/SKILL.md).
@@ -67,11 +68,12 @@ https://cc0.company/.well-known/ai-tool/{slug}.json
 | `mfergpt-lore` | third-party | sync | 0.025 |
 | `mfergpt-ask` | third-party | sync | 0.055 |
 | `mfergpt-mferfy` | third-party | sync | 0.055 |
+| `tcgenerate-random` | third-party | sync | 1.005 |
 
 Prices are what your wallet is charged — nothing added on top. Third-party
 (re-brokered) services carry a flat **$0.005** platform commission inside the
-listed price (e.g. mfergpt-lore = 0.02 upstream + 0.005); first-party services
-are all-in. Never hard-code a price: read `maxAmountRequired` from the live
+listed price (e.g. mfergpt-lore = 0.02 upstream + 0.005; tcgenerate-random =
+1.00 upstream + 0.005); first-party services are all-in. Never hard-code a price: read `maxAmountRequired` from the live
 402 challenge.
 
 ## Invoking (all services)
@@ -177,6 +179,7 @@ take one cycle to appear.
   async job flow, prompt guides
 - [`./data/SKILL.md`](./data/SKILL.md) — cc0-daily-brief + the cc0pedia tools
 - [`./mfergpt/SKILL.md`](./mfergpt/SKILL.md) — re-brokered third-party services
+- [`./tcgenerate/SKILL.md`](./tcgenerate/SKILL.md) — re-brokered AI trading-card generator
 - [`../nft-collections/SKILL.md`](../nft-collections/SKILL.md) — deploy NFT
   collections (ETH-paid, not x402)
 - [`../launch-token/SKILL.md`](../launch-token/SKILL.md) — launch an ERC20 on
