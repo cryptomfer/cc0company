@@ -58,6 +58,11 @@ requesting again **resets the clock for the whole unbonding balance**, so unstak
 the full amount you want in one go. `withdraw()` reverts with
 `CooldownNotElapsed` before the unlock. Your WETH stays claimable throughout.
 
+> **RPC / rate limits.** `getPosition` reads several on-chain values — the public
+> Base node throttles bursts, so give your SDK client **your own RPC** (Alchemy /
+> Infura) rather than a public endpoint. And you **never need a position read to
+> stake, claim, or unstake** — the writes stand alone; reads are only for display.
+
 ## Any wallet infra (CDP / Bankr / Safe / relayers)
 
 Can't hand the SDK a viem account? Give it a universal `sender` instead —
