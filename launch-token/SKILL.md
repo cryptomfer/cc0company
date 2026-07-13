@@ -1,7 +1,7 @@
 ---
 name: cc0company-launch-token
 version: 2.0.0
-description: Launch your own token on the cc0.company launchpad (Base · Ethereum · Robinhood Chain, Uniswap V4) as an AI agent — one transaction, instant liquidity, 75% of all trading fees back to you forever, enforced on-chain. Wallet flows for viem / private key / CDP, an HTTP-only sender flow for Bankr-style wallets, fee claiming, and $cc0company staking.
+description: Launch your own token on the cc0.company launchpad (Base · Ethereum · Robinhood Chain, Uniswap V4) as an AI agent — one transaction, instant liquidity, 75% of all trading fees back to you forever, enforced on-chain. Wallet flows for viem / private key / CDP, an HTTP-only sender flow for Bankr-style wallets, and fee claiming. ($cc0company staking is now its own skill — see cc0company-staking.)
 homepage: https://cc0.company
 api_base: https://cc0.company/api
 sdk: "@cc0company/sdk"
@@ -223,22 +223,13 @@ await fees.claimFees(creatorWallet, tokenAddress);        // claims both
   `0xC04bdF721FA5CEc839819864FA86F3D48B89Fcee` (claim WETH at
   `0x4200000000000000000000000000000000000006`, and your token address).
 
-## Stake $cc0company (earn from EVERY launch)
+## Stake $cc0company
 
-15% of every launchpad token's trading fees flow to $cc0company stakers, in ETH:
-
-```typescript
-import { Cc0Staking } from '@cc0company/sdk';
-import { parseEther } from 'viem';
-
-const staking = new Cc0Staking({ account });
-await staking.stake(parseEther('1000'));   // auto-approves if needed; earning starts now
-await staking.claimRewards();              // accrued ETH (WETH) → your wallet
-const pos = await staking.getPosition(me); // staked / earned / unbonding / totals
-await staking.requestUnstake(parseEther('500')); // 48h cooldown, then:
-await staking.withdraw();
-await staking.exit();                      // claim all + unstake all, one tx
-```
+15% of every launchpad token's trading fees flow to **$cc0company stakers** in
+WETH — stake once on Base and earn from launches on all three chains. The full
+stake / claim / unstake flow (SDK + any-wallet `sender`), the 48h unbond
+cooldown, and the staking contract addresses live in the dedicated skill:
+[`../staking/SKILL.md`](../staking/SKILL.md).
 
 ## Contract reference (all three chains, all verified)
 
@@ -255,10 +246,9 @@ The SDK picks the right addresses from your `chain` automatically
 
 Explorers: [basescan.org](https://basescan.org) · [etherscan.io](https://etherscan.io) · [robinhoodchain.blockscout.com](https://robinhoodchain.blockscout.com) (Arbitrum-Orbit L2, ETH gas).
 
-**Staking is on Base only** — `$cc0company` `0x67c5F00491c09cbCF6359f95690574E6106bb3CF`.
-The 15% staker slice still reaches the Base pool from every chain: on Ethereum via
-the `Cc0EthStakingForwarder` (WETH → OP bridge → Base), on Robinhood Chain via the
-`Cc0StakingEscrow` (Relay bridge). Stake on Base, earn from launches on all three.
+**Staking is on Base only** (`$cc0company` `0x67c5F00491c09cbCF6359f95690574E6106bb3CF`) —
+the 15% staker slice reaches the Base pool from every chain via bridges. How to
+stake + the staking contracts: [`../staking/SKILL.md`](../staking/SKILL.md).
 **Fee claiming (`Cc0Fees`) happens on the chain you launched on.**
 
 Full list: [cc0.company/docs/smart-contracts](https://cc0.company/docs/smart-contracts).
@@ -274,6 +264,7 @@ Full list: [cc0.company/docs/smart-contracts](https://cc0.company/docs/smart-con
 
 ## Related skills
 
+- [`../staking/SKILL.md`](../staking/SKILL.md) — stake $cc0company, earn the 15% fee share
 - [`../nft-collections/SKILL.md`](../nft-collections/SKILL.md) — deploy NFT collections (Base + Ethereum)
 - [`../agentic-marketplace/SKILL.md`](../agentic-marketplace/SKILL.md) — pay-per-call services (x402/USDC)
 
