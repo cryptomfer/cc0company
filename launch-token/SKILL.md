@@ -223,6 +223,48 @@ await launchpad.launchToken({
 });
 ```
 
+## Gas-sponsored launches (Base + Robinhood — zero ETH needed)
+
+On **Base (8453)** and **Robinhood Chain (4663)**, the platform can pay the
+deploy gas for you: you make ONE plain HTTP call, the platform's sponsor wallet
+signs + pays `deployToken`, and **you keep control everywhere control exists**
+(`rewardRecipient` gets the creator fee slice; vault/airdrop admin = you). No
+wallet SDK, no signature, no ETH — ideal when the agent wallet holds no gas.
+Ethereum launches stay self-paid (mainnet gas).
+
+```bash
+# 0. Is sponsorship live on this chain? (free)
+curl "https://cc0.company/api/cc0strategy/sponsor-launch?chainId=8453"   # → {"active":true}
+
+# 1. Pin your image first (the sponsored route wants a ready URL):
+#    POST https://cc0.company/api/store/launchpad/pin-image  → { ipfsUri, gatewayUrl }
+
+# 2. Launch — sponsor pays the gas:
+curl -X POST https://cc0.company/api/cc0strategy/sponsor-launch \
+  -H "Content-Type: application/json" \
+  -d '{
+    "chainId": 8453,
+    "name": "My Token", "symbol": "MTK",
+    "image": "ipfs://…",
+    "description": "born to launch",
+    "feeTier": 1,
+    "lpPreset": "degen",
+    "rewardRecipient": "0xYourAgentWallet"
+  }'
+# → { "success": true, "tokenAddress": "0x…", "txHash": "0x…", "sponsored": true }
+```
+
+- `pairedTokenAddress` works here too (Base only) — the server resolves the
+  paired price itself, fail-closed.
+- **Guardrails:** max **3 sponsored launches per wallet per day** (429 after),
+  **no dev buy** (it would spend the sponsor's ETH — launch self-paid for that),
+  `image` must be an already-uploaded URL, and `lpPreset: "degen"` stays
+  MANDATORY (the route defaults to classic).
+- **After the deploy, register it** so your cc0.company token page goes live —
+  a plain HTTP call via the SDK, no gas:
+  `new Cc0Launchpad({}).registerLaunch({ tokenAddress, txHash, name, symbol, image, creator, lpPreset: 'degen' })`.
+- Fee claiming is unchanged (below) — fees always accrue to `rewardRecipient`.
+
 ## Claim your fees
 
 Fees accrue in the fee locker per `(feeOwner, token)` as trades happen.

@@ -118,6 +118,45 @@ Paired specifics:
 - Uses the separate dual-mode factory (`0x55ee…7979` on mainnet) — the SDK picks it
   automatically; fail-closed on chains where it isn't deployed.
 
+## Gas-sponsored B20 launches (zero ETH needed)
+
+The platform can pay the deploy gas: ONE plain HTTP call, the sponsor wallet
+signs + pays `deployToken`, and **you keep control everywhere control exists**
+(`rewardRecipient` gets the 75%/80% creator slice; vault/airdrop admin = you;
+trustless tokens are born admin-less as always). No wallet SDK, no signature,
+no ETH — ideal when the agent wallet holds no gas.
+
+```bash
+# 0. Is sponsorship live? (free)
+curl "https://cc0.company/api/b20/sponsor-launch?chainId=8453"   # → {"active":true}
+
+# 1. Pin your image first: POST https://cc0.company/api/store/launchpad/pin-image
+
+# 2. Launch — sponsor pays the gas:
+curl -X POST https://cc0.company/api/b20/sponsor-launch \
+  -H "Content-Type: application/json" \
+  -d '{
+    "chainId": 8453,
+    "name": "My B20", "symbol": "MYB20",
+    "image": "ipfs://…",
+    "supply": "420",
+    "feeTier": 1,
+    "lpPreset": "degen",
+    "rewardRecipient": "0xYourAgentWallet"
+  }'
+# → { "success": true, "tokenAddress": "0x…", "txHash": "0x…", "sponsored": true }
+```
+
+- `pairedTokenAddress` works here too — the server resolves the paired token's
+  symbol/decimals/price itself (fail-closed; a client can never supply a price).
+- **Do not send `adminMode`** — the route defaults to trustless, which is the
+  agent rule anyway.
+- **Guardrails:** max **3 sponsored launches per wallet per day** (429),
+  **no dev buy**, `image` must be an already-uploaded URL, and
+  `lpPreset: "degen"` stays MANDATORY (the route defaults to classic).
+- **Register after the deploy** (plain HTTP via the SDK, no gas):
+  `new Cc0B20Launchpad({}).registerLaunch({ tokenAddress, txHash, name, symbol, image, creator, lpPreset: 'degen' })`.
+
 ## Claim your fees
 
 Fees accrue per `(feeOwner, token)` in the shared fee locker
