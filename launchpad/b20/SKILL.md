@@ -165,6 +165,14 @@ curl -X POST https://cc0.company/api/b20/sponsor-launch \
   even the **tweet page URL** (`x.com/...status/...`) when the user attached an
   image on X: the platform extracts the photo and pins it to IPFS entirely
   **server-side**. You never download, re-host, or pre-pin anything yourself.
+- **NEVER retry a launch on your own timeout.** The deploy is synchronous and
+  can take 1-2 minutes — a slow response does NOT mean it failed. If your HTTP
+  call times out, check `GET /api/store/token-launches?creator_wallet=0xYou&limit=3`
+  to see whether it landed BEFORE doing anything else. The platform also
+  protects itself: an identical retry (same wallet + symbol) within 15 minutes
+  returns the ORIGINAL token (`duplicate: true`, no second deploy), and an
+  identical launch still in progress returns 409. `force: true` exists only for
+  an intentional same-symbol relaunch.
 - **Guardrails:** max **3 sponsored launches per wallet per day** (429),
   **no dev buy**, and `lpPreset: "degen"` stays MANDATORY (the route defaults
   to classic).
