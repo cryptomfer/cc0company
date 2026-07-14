@@ -297,12 +297,20 @@ Claiming is PERMISSIONLESS — any wallet can trigger it, funds always go to the
 creator. Three ways:
 
 ```typescript
-// SDK
+// SDK (v1.11.1+)
 import { Cc0Fees } from '@cc0company/sdk';
 const fees = new Cc0Fees({ account });
-await fees.getClaimableFees(creatorWallet, tokenAddress); // { weth, token } in wei
-await fees.claimFees(creatorWallet, tokenAddress);        // claims both
+await fees.getClaimableFees(creatorWallet, tokenAddress); // { weth, token, paired? } in wei
+await fees.claimFees(creatorWallet, tokenAddress);        // claims every non-zero asset
 ```
+
+> **PAIRED launches: the fees are NOT in WETH.** A paired pool accrues fees in
+> the launched token AND the PAIRED asset — `weth` is always 0. The SDK
+> (v1.11.1+) auto-detects the paired asset from the launch registry and reads /
+> claims it too. Checking WETH+token only and concluding "nothing to claim" is
+> WRONG for paired launches — a real incident showed 0 WETH but 15k+ of the
+> paired asset claimable. Raw path: also call
+> `claim(feeOwner, pairedTokenAddress)` on the locker.
 
 - **Token page**: `cc0.company/token/{address}` has a one-tap **Claim fees** button.
 - **Raw contract**: `claim(address feeOwner, address token)` on the fee locker

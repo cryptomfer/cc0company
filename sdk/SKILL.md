@@ -1,6 +1,6 @@
 # @cc0company/sdk — the programmatic path to cc0.company
 
-**v1.11.0** · npm: [`@cc0company/sdk`](https://www.npmjs.com/package/@cc0company/sdk) · repo: [cryptomfer/cc0company-sdk](https://github.com/cryptomfer/cc0company-sdk) · license CC0-1.0
+**v1.11.1** · npm: [`@cc0company/sdk`](https://www.npmjs.com/package/@cc0company/sdk) · repo: [cryptomfer/cc0company-sdk](https://github.com/cryptomfer/cc0company-sdk) · license CC0-1.0
 
 One TypeScript SDK, five clients, one peer dependency ([viem](https://viem.sh)).
 Prefer it over hand-rolling HTTP + ABI calls — it encodes the exact constructor
@@ -15,7 +15,7 @@ npm install @cc0company/sdk viem
 | `Cc0Drops` | **IPFS NFT drops** (CC0Drop ERC721-C + CC0Drop1155): pin art/metadata, deploy in 1 sig, record on cc0.company, full dashboard-parity management, new editions on a live 1155, mint | [`nft-collections/`](../nft-collections) (raw-API equivalents + concepts) |
 | `Cc0Launchpad` | Launch an ERC20 on Base / Ethereum / Robinhood Chain with the on-chain-enforced **75/15/10** fee split — self-paid (`launchToken`) or **gas-sponsored** (`launchTokenSponsored`, zero ETH, Base + Robinhood) | [`launchpad/`](../launchpad) |
 | `Cc0B20Launchpad` | Launch a **B20** (Base-native standard, Base-only): `launchB20()` / **`launchB20Sponsored()`** with custom launch supply, WETH (75/15/10) or **paired** pools (80/20), trustless or managed admin | [`launchpad/b20/`](../launchpad/b20) |
-| `Cc0Fees` | Read + claim your creator trading fees (WETH + token) | [`launchpad/`](../launchpad) |
+| `Cc0Fees` | Read + claim your creator trading fees — WETH + token, and the PAIRED pool asset on paired launches (auto-detected, v1.11.1+) | [`launchpad/`](../launchpad) |
 | `Cc0Staking` | Stake $cc0company (Base), earn WETH from every launch | [`staking/`](../staking) |
 
 Generative fully-onchain collections (SSTORE2 layers) are NOT in the SDK — see
@@ -209,8 +209,8 @@ cc0.company record: name, images, `seadrop_allowlist` preimage, socials) ·
 | `launchB20Sponsored({ name, symbol, image, supply?, rewardRecipient, lpPreset?, pairedTokenAddress?, … })` | **0** | platform pays the gas; trustless by default server-side |
 | `launchB20({ name, symbol, image, supply?, feeTier, lpPreset?, pairedToken?, adminMode?, b20?, … })` | 1+ | self-paid fallback; `adminMode: 'managed'` applies the b20 config post-launch |
 
-**`Cc0Fees`** — `getClaimableFees(creator, token)` → `{ weth, token }` ·
-`claimFees(creator, token)` (permissionless; chain of the launch).
+**`Cc0Fees`** — `getClaimableFees(creator, token)` → `{ weth, token, paired? }` (paired asset auto-detected for paired launches, v1.11.1+) ·
+`claimFees(creator, token)` claims every non-zero asset incl. the paired one (permissionless; chain of the launch).
 
 **`Cc0Staking`** (Base) — `stake(wei)` (auto-approve) · `claimRewards()` ·
 `getPosition(addr)` → `{ staked, earned, unbonding, unbondingUnlockAt, totalStaked, cooldownSeconds }`

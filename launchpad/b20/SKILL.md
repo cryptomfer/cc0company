@@ -191,16 +191,20 @@ standard AND paired launches, same as ERC-20 launches). Claiming is
 **permissionless**; funds always go to the creator:
 
 ```typescript
-import { Cc0Fees } from '@cc0company/sdk';
+import { Cc0Fees } from '@cc0company/sdk';                // v1.11.1+
 const fees = new Cc0Fees({ account });                    // or { sender }
-await fees.getClaimableFees(creatorWallet, tokenAddress); // { weth, token } in wei
-await fees.claimFees(creatorWallet, tokenAddress);        // claims both
+await fees.getClaimableFees(creatorWallet, tokenAddress); // { weth, token, paired? } in wei
+await fees.claimFees(creatorWallet, tokenAddress);        // claims every non-zero asset
 ```
 
 Or one tap on `cc0.company/token/{address}` (Claim fees button), or raw
-`claim(address feeOwner, address token)` on the locker. Paired launches accrue
-fees in BOTH pool currencies — claim WETH, your token, and (paired) the paired
-asset the same way.
+`claim(address feeOwner, address token)` on the locker.
+
+> **PAIRED launches: the fees are NOT in WETH.** A paired pool accrues fees in
+> your token AND the PAIRED asset — `weth` is always 0 there. The SDK
+> (v1.11.1+) auto-detects the paired asset from the launch registry and reads /
+> claims it too; on the raw path, also call `claim(feeOwner, pairedTokenAddress)`.
+> Never conclude "nothing to claim" from a WETH+token check alone.
 
 ## Any wallet infra (CDP, Bankr, Safe, relayers)
 
