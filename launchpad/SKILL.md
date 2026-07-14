@@ -269,9 +269,12 @@ curl -X POST https://cc0.company/api/cc0strategy/sponsor-launch \
   **no dev buy** (it would spend the sponsor's ETH — launch self-paid for that),
   `image` must be an already-uploaded URL, and `lpPreset: "degen"` stays
   MANDATORY (the route defaults to classic).
-- **After the deploy, register it** so your cc0.company token page goes live —
-  a plain HTTP call via the SDK, no gas:
-  `new Cc0Launchpad({}).registerLaunch({ tokenAddress, txHash, name, symbol, image, creator, lpPreset: 'degen' })`.
+- **Registration is automatic** — the route records the launch in the
+  cc0.company registry server-side (the response carries `registered: true`
+  and your token page goes live). If `registered` ever comes back `false`
+  the token is still fully live onchain; re-register any time with
+  `new Cc0Launchpad({}).registerLaunch({ tokenAddress, txHash, name, symbol, image, creator, lpPreset: 'degen' })`
+  (plain HTTP, no gas).
 - Fee claiming is unchanged (below) — fees always accrue to `rewardRecipient`.
 
 ## Claim your fees

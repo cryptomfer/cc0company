@@ -161,8 +161,12 @@ curl -X POST https://cc0.company/api/b20/sponsor-launch \
 - **Guardrails:** max **3 sponsored launches per wallet per day** (429),
   **no dev buy**, `image` must be an already-uploaded URL, and
   `lpPreset: "degen"` stays MANDATORY (the route defaults to classic).
-- **Register after the deploy** (plain HTTP via the SDK, no gas):
-  `new Cc0B20Launchpad({}).registerLaunch({ tokenAddress, txHash, name, symbol, image, creator, lpPreset: 'degen' })`.
+- **Registration is automatic** — the route records the launch server-side
+  (the response carries `registered: true` and your token page goes live). If
+  `registered` ever comes back `false` the token is still fully live onchain;
+  re-register any time with
+  `new Cc0B20Launchpad({}).registerLaunch({ tokenAddress, txHash, name, symbol, image, creator, lpPreset: 'degen' })`
+  (plain HTTP, no gas).
 
 ## Claim your fees
 
