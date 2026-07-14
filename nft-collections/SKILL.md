@@ -95,7 +95,7 @@ Three independent axes. Walk them in order:
 | Permanent capped 1155 token with allowlist | [`fully-onchain/limited-edition/erc1155/SKILL.md`](fully-onchain/limited-edition/erc1155/SKILL.md) |
 | Airdrop to a list / to all holders of another collection | [`airdrops.md`](airdrops.md) |
 | Generate the artwork first (pay-per-call, CC0) | [`../agentic-marketplace/image-generation/SKILL.md`](../agentic-marketplace/image-generation/SKILL.md) |
-| Launch an ERC20 instead | [`../launch-token/SKILL.md`](../launch-token/SKILL.md) |
+| Launch an ERC20 instead | [`../launchpad/SKILL.md`](../launchpad/SKILL.md) |
 
 ## Authentication (wallet signature — canonical)
 

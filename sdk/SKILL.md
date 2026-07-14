@@ -13,9 +13,9 @@ npm install @cc0company/sdk viem
 | Client | Does | Deep docs |
 |---|---|---|
 | `Cc0Drops` | **IPFS NFT drops** (CC0Drop ERC721-C + CC0Drop1155): pin art/metadata, deploy in 1 sig, record on cc0.company, full dashboard-parity management, new editions on a live 1155, mint | [`nft-collections/`](../nft-collections) (raw-API equivalents + concepts) |
-| `Cc0Launchpad` | Launch an ERC20 on Base / Ethereum / Robinhood Chain with the on-chain-enforced **75/15/10** fee split | [`launch-token/`](../launch-token) |
-| `Cc0B20Launchpad` | Launch a **B20** (Base-native standard, Base-only): `launchB20()` with custom launch supply, WETH (75/15/10) or **paired** pools (80/20), trustless or managed admin | [`launch-token/b20/`](../launch-token/b20) |
-| `Cc0Fees` | Read + claim your creator trading fees (WETH + token) | [`launch-token/`](../launch-token) |
+| `Cc0Launchpad` | Launch an ERC20 on Base / Ethereum / Robinhood Chain with the on-chain-enforced **75/15/10** fee split | [`launchpad/`](../launchpad) |
+| `Cc0B20Launchpad` | Launch a **B20** (Base-native standard, Base-only): `launchB20()` with custom launch supply, WETH (75/15/10) or **paired** pools (80/20), trustless or managed admin | [`launchpad/b20/`](../launchpad/b20) |
+| `Cc0Fees` | Read + claim your creator trading fees (WETH + token) | [`launchpad/`](../launchpad) |
 | `Cc0Staking` | Stake $cc0company (Base), earn WETH from every launch | [`staking/`](../staking) |
 
 Generative fully-onchain collections (SSTORE2 layers) are NOT in the SDK — see

@@ -25,7 +25,7 @@ wallet** signs; no admin can move, freeze, or reassign a stake. Staking lives on
 
 Every launchpad token's LP fee is split **75% creator / 15% stakers / 10%
 treasury**, enforced on-chain by the factory (see
-[`../launch-token/SKILL.md`](../launch-token/SKILL.md)). The 15% staker slice is
+[`../launchpad/SKILL.md`](../launchpad/SKILL.md)). The 15% staker slice is
 routed to this pool as WETH and pooled per staked token (Synthetix-style
 `rewardPerToken` accumulator), claimable at any time.
 
@@ -68,7 +68,7 @@ the full amount you want in one go. `withdraw()` reverts with
 Can't hand the SDK a viem account? Give it a universal `sender` instead —
 `{ address, send(tx) → txHash }` — and **every** staking method works through it,
 exactly like the launchpad. Full CDP + Bankr `sender` snippets and their
-per-provider gotchas are in [`../launch-token/SKILL.md`](../launch-token/SKILL.md)
+per-provider gotchas are in [`../launchpad/SKILL.md`](../launchpad/SKILL.md)
 (Path B); the SDK method reference is in [`../sdk/SKILL.md`](../sdk/SKILL.md).
 
 No SDK at all? A raw-calldata reference (cast / Bankr / CDP, function selectors,
@@ -89,7 +89,7 @@ the Base pool, so you stake **once** and earn from launches on all three.
 Cross-chain routing of the 15%: on Ethereum via the `Cc0EthStakingForwarder`
 (WETH → OP bridge → Base), on Robinhood Chain via the `Cc0StakingEscrow` (Relay
 bridge). **Fee *claiming* for your own launches** happens on the chain you
-launched on — that's `Cc0Fees`, in the launch-token skill.
+launched on — that's `Cc0Fees`, in the launchpad skill.
 
 ## Amounts & gas
 
@@ -99,7 +99,7 @@ native ETH.
 
 ## Related skills
 
-- [`../launch-token/SKILL.md`](../launch-token/SKILL.md) — launch a token (the source of the 15% staker fees)
+- [`../launchpad/SKILL.md`](../launchpad/SKILL.md) — launch a token (the source of the 15% staker fees)
 - [`../sdk/SKILL.md`](../sdk/SKILL.md) — `@cc0company/sdk` method reference (`Cc0Staking`, signers)
 - [`../agentic-marketplace/SKILL.md`](../agentic-marketplace/SKILL.md) — pay-per-call x402 services
 

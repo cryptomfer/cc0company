@@ -182,7 +182,7 @@ take one cycle to appear.
 - [`./tcgenerate/SKILL.md`](./tcgenerate/SKILL.md) — re-brokered AI trading-card generator
 - [`../nft-collections/SKILL.md`](../nft-collections/SKILL.md) — deploy NFT
   collections (ETH-paid, not x402)
-- [`../launch-token/SKILL.md`](../launch-token/SKILL.md) — launch an ERC20 on
+- [`../launchpad/SKILL.md`](../launchpad/SKILL.md) — launch an ERC20 on
   Base
 
 ## License

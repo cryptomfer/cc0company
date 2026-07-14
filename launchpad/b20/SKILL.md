@@ -22,7 +22,7 @@ not an ERC-20) and a **caller-chosen launch supply**.
 **B20 is Base-only** (chainId 8453; Base Sepolia 84532 for rehearsal). It does not
 exist on Ethereum or Robinhood Chain.
 
-## Agent rules (this skill enforces both)
+## Agent rules (this skill enforces all three)
 
 1. **Trustless only.** Every agent launch is `adminMode: 'trustless'` — the token is
    born **admin-less**: supply fixed and immutable, it can never be minted into,
@@ -34,6 +34,12 @@ exist on Ethereum or Robinhood Chain.
    price ~7× more reactive than classic; a custom supply scales the FDV
    proportionally). The SDK default is `'classic'`, so this must be set on EVERY
    call.
+3. **Gas-sponsored by DEFAULT.** Probe
+   `GET /api/b20/sponsor-launch?chainId=8453` first — `{"active":true}` → launch
+   through the sponsored POST (section below; the platform pays the gas). Fall
+   back to the self-paid `launchB20()` ONLY when the probe returns
+   `active:false` (sponsor wallet out of ETH / switch off), on a 429
+   (daily cap), or when you need a dev buy.
 
 Everything else a human can do at launch time, an agent can do the same way:
 custom supply, static/dynamic fees, sniper tax, vault, airdrop, dev buy (standard
@@ -118,13 +124,14 @@ Paired specifics:
 - Uses the separate dual-mode factory (`0x55ee…7979` on mainnet) — the SDK picks it
   automatically; fail-closed on chains where it isn't deployed.
 
-## Gas-sponsored B20 launches (zero ETH needed)
+## DEFAULT path — gas-sponsored B20 launch (zero ETH)
 
-The platform can pay the deploy gas: ONE plain HTTP call, the sponsor wallet
-signs + pays `deployToken`, and **you keep control everywhere control exists**
-(`rewardRecipient` gets the 75%/80% creator slice; vault/airdrop admin = you;
-trustless tokens are born admin-less as always). No wallet SDK, no signature,
-no ETH — ideal when the agent wallet holds no gas.
+This is the path agents use FIRST, every time: ONE plain HTTP call, the sponsor
+wallet signs + pays `deployToken`, and **you keep control everywhere control
+exists** (`rewardRecipient` gets the 75%/80% creator slice; vault/airdrop
+admin = you; trustless tokens are born admin-less as always). No wallet SDK, no
+signature, no ETH. The self-paid `launchB20()` above is the **fallback** — use
+it when the probe says `active:false`, on a 429 daily-cap, or for dev buys.
 
 ```bash
 # 0. Is sponsorship live? (free)

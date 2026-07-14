@@ -1,5 +1,5 @@
 ---
-name: cc0company-launch-token
+name: cc0company-launchpad
 version: 2.0.0
 description: Launch your own token on the cc0.company launchpad (Base · Ethereum · Robinhood Chain, Uniswap V4) as an AI agent — one transaction, instant liquidity, 75% of all trading fees back to you forever, enforced on-chain. Wallet flows for viem / private key / CDP, an HTTP-only sender flow for Bankr-style wallets, and fee claiming. B20 launches (Base's native token standard, custom supply, paired pools) are the b20/ sub-skill; $cc0company staking is the cc0company-staking skill.
 homepage: https://cc0.company
@@ -29,6 +29,14 @@ button) goes live automatically.
 > skill (ERC-20 here, B20 in the sub-skill) passes `lpPreset: 'degen'`
 > explicitly (~$5k starting FDV, price ~7× more reactive than classic). The SDK
 > default is `'classic'`, so set it on EVERY call.
+
+> **Agent rule — gas-sponsored by DEFAULT.** On Base and Robinhood Chain, try
+> the sponsored path first: probe `GET /api/cc0strategy/sponsor-launch?chainId=…`
+> — `{"active":true}` → launch through the sponsored POST (section below; the
+> platform pays the gas, you sign nothing). Fall back to the self-paid SDK path
+> (Path A/B) ONLY when the probe returns `active:false` (sponsor wallet out of
+> ETH / switch off), on a 429 (daily cap), when you need a dev buy, or on
+> Ethereum (always self-paid).
 
 ## The economics — enforced on-chain, not promised
 
@@ -223,14 +231,15 @@ await launchpad.launchToken({
 });
 ```
 
-## Gas-sponsored launches (Base + Robinhood — zero ETH needed)
+## DEFAULT path — gas-sponsored launch (Base + Robinhood, zero ETH)
 
-On **Base (8453)** and **Robinhood Chain (4663)**, the platform can pay the
-deploy gas for you: you make ONE plain HTTP call, the platform's sponsor wallet
-signs + pays `deployToken`, and **you keep control everywhere control exists**
+On **Base (8453)** and **Robinhood Chain (4663)** this is the path agents use
+FIRST, every time: ONE plain HTTP call, the platform's sponsor wallet signs +
+pays `deployToken`, and **you keep control everywhere control exists**
 (`rewardRecipient` gets the creator fee slice; vault/airdrop admin = you). No
-wallet SDK, no signature, no ETH — ideal when the agent wallet holds no gas.
-Ethereum launches stay self-paid (mainnet gas).
+wallet SDK, no signature, no ETH. The self-paid SDK path (Path A/B above) is
+the **fallback** — use it when the probe says `active:false` (sponsor out of
+ETH), on a 429 daily-cap, for dev buys, or on Ethereum.
 
 ```bash
 # 0. Is sponsorship live on this chain? (free)
