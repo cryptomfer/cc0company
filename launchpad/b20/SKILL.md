@@ -137,7 +137,8 @@ it when the probe says `active:false`, on a 429 daily-cap, or for dev buys.
 # 0. Is sponsorship live? (free)
 curl "https://cc0.company/api/b20/sponsor-launch?chainId=8453"   # → {"active":true}
 
-# 1. Pin your image first: POST https://cc0.company/api/store/launchpad/pin-image
+# 1. Image: OPTIONAL. Omit it (platform default applied) or pass ANY http(s)
+#    image URL — the platform fetches + pins it to IPFS server-side.
 
 # 2. Launch — sponsor pays the gas (or via the SDK: b20.launchB20Sponsored({...}), zero signer needed):
 curl -X POST https://cc0.company/api/b20/sponsor-launch \
@@ -158,9 +159,15 @@ curl -X POST https://cc0.company/api/b20/sponsor-launch \
   symbol/decimals/price itself (fail-closed; a client can never supply a price).
 - **Do not send `adminMode`** — the route defaults to trustless, which is the
   agent rule anyway.
+- **Image rules (NEVER block a launch on the image):**
+  `image` is **optional** — omit it and the platform default is applied; do NOT
+  ask the user for one. Pass **whatever URL you have** — a direct image URL OR
+  even the **tweet page URL** (`x.com/...status/...`) when the user attached an
+  image on X: the platform extracts the photo and pins it to IPFS entirely
+  **server-side**. You never download, re-host, or pre-pin anything yourself.
 - **Guardrails:** max **3 sponsored launches per wallet per day** (429),
-  **no dev buy**, `image` must be an already-uploaded URL, and
-  `lpPreset: "degen"` stays MANDATORY (the route defaults to classic).
+  **no dev buy**, and `lpPreset: "degen"` stays MANDATORY (the route defaults
+  to classic).
 - **Registration is automatic** — the route records the launch server-side
   (the response carries `registered: true` and your token page goes live). If
   `registered` ever comes back `false` the token is still fully live onchain;

@@ -245,8 +245,8 @@ ETH), on a 429 daily-cap, for dev buys, or on Ethereum.
 # 0. Is sponsorship live on this chain? (free)
 curl "https://cc0.company/api/cc0strategy/sponsor-launch?chainId=8453"   # → {"active":true}
 
-# 1. Pin your image first (the sponsored route wants a ready URL):
-#    POST https://cc0.company/api/store/launchpad/pin-image  → { ipfsUri, gatewayUrl }
+# 1. Image: OPTIONAL. Omit it (platform default applied) or pass ANY http(s)
+#    image URL — the platform fetches + pins it to IPFS server-side.
 
 # 2. Launch — sponsor pays the gas (or via the SDK: launchpad.launchTokenSponsored({...}), zero signer needed):
 curl -X POST https://cc0.company/api/cc0strategy/sponsor-launch \
@@ -265,10 +265,15 @@ curl -X POST https://cc0.company/api/cc0strategy/sponsor-launch \
 
 - `pairedTokenAddress` works here too (Base only) — the server resolves the
   paired price itself, fail-closed.
+- **Image rules (NEVER block a launch on the image):**
+  `image` is **optional** — omit it and the platform default is applied; do NOT
+  ask the user for one. Pass **whatever URL you have** — a direct image URL OR
+  even the **tweet page URL** (`x.com/...status/...`) when the user attached an
+  image on X: the platform extracts the photo and pins it to IPFS entirely
+  **server-side**. You never download, re-host, or pre-pin anything yourself.
 - **Guardrails:** max **3 sponsored launches per wallet per day** (429 after),
   **no dev buy** (it would spend the sponsor's ETH — launch self-paid for that),
-  `image` must be an already-uploaded URL, and `lpPreset: "degen"` stays
-  MANDATORY (the route defaults to classic).
+  and `lpPreset: "degen"` stays MANDATORY (the route defaults to classic).
 - **Registration is automatic** — the route records the launch in the
   cc0.company registry server-side (the response carries `registered: true`
   and your token page goes live). If `registered` ever comes back `false`
