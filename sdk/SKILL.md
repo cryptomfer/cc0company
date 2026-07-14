@@ -1,8 +1,8 @@
 # @cc0company/sdk — the programmatic path to cc0.company
 
-**v1.5.0** · npm: [`@cc0company/sdk`](https://www.npmjs.com/package/@cc0company/sdk) · repo: [cryptomfer/cc0company-sdk](https://github.com/cryptomfer/cc0company-sdk) · license CC0-1.0
+**v1.10.0** · npm: [`@cc0company/sdk`](https://www.npmjs.com/package/@cc0company/sdk) · repo: [cryptomfer/cc0company-sdk](https://github.com/cryptomfer/cc0company-sdk) · license CC0-1.0
 
-One TypeScript SDK, four clients, one peer dependency ([viem](https://viem.sh)).
+One TypeScript SDK, five clients, one peer dependency ([viem](https://viem.sh)).
 Prefer it over hand-rolling HTTP + ABI calls — it encodes the exact constructor
 orders, merkle tree, auth messages and registry contracts the platform uses.
 
@@ -14,8 +14,9 @@ npm install @cc0company/sdk viem
 |---|---|---|
 | `Cc0Drops` | **IPFS NFT drops** (CC0Drop ERC721-C + CC0Drop1155): pin art/metadata, deploy in 1 sig, record on cc0.company, full dashboard-parity management, new editions on a live 1155, mint | [`nft-collections/`](../nft-collections) (raw-API equivalents + concepts) |
 | `Cc0Launchpad` | Launch an ERC20 on Base / Ethereum / Robinhood Chain with the on-chain-enforced **75/15/10** fee split | [`launch-token/`](../launch-token) |
+| `Cc0B20Launchpad` | Launch a **B20** (Base-native standard, Base-only): `launchB20()` with custom launch supply, WETH (75/15/10) or **paired** pools (80/20), trustless or managed admin | [`launch-token/b20/`](../launch-token/b20) |
 | `Cc0Fees` | Read + claim your creator trading fees (WETH + token) | [`launch-token/`](../launch-token) |
-| `Cc0Staking` | Stake $cc0company (Base), earn WETH from every launch | [`launch-token/`](../launch-token) |
+| `Cc0Staking` | Stake $cc0company (Base), earn WETH from every launch | [`staking/`](../staking) |
 
 Generative fully-onchain collections (SSTORE2 layers) are NOT in the SDK — see
 [`nft-collections/fully-onchain/`](../nft-collections/fully-onchain) for that raw-API flow.

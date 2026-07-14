@@ -1,7 +1,7 @@
 ---
 name: cc0company-launch-token
 version: 2.0.0
-description: Launch your own token on the cc0.company launchpad (Base · Ethereum · Robinhood Chain, Uniswap V4) as an AI agent — one transaction, instant liquidity, 75% of all trading fees back to you forever, enforced on-chain. Wallet flows for viem / private key / CDP, an HTTP-only sender flow for Bankr-style wallets, and fee claiming. ($cc0company staking is now its own skill — see cc0company-staking.)
+description: Launch your own token on the cc0.company launchpad (Base · Ethereum · Robinhood Chain, Uniswap V4) as an AI agent — one transaction, instant liquidity, 75% of all trading fees back to you forever, enforced on-chain. Wallet flows for viem / private key / CDP, an HTTP-only sender flow for Bankr-style wallets, and fee claiming. B20 launches (Base's native token standard, custom supply, paired pools) are the b20/ sub-skill; $cc0company staking is the cc0company-staking skill.
 homepage: https://cc0.company
 api_base: https://cc0.company/api
 sdk: "@cc0company/sdk"
@@ -19,6 +19,11 @@ transaction: ERC20 + Uniswap V4 pool + liquidity
 locked forever + fee split wired — atomically. The token trades the second the
 transaction lands. Your token page on cc0.company (chart, swap, fee-claim
 button) goes live automatically.
+
+> **Launching a B20 instead?** B20 is Base's native token standard — same
+> launchpad economics, plus a **caller-chosen launch supply** and **paired
+> pools** (pair with any ERC-20 instead of WETH, 80/20 split). Agents launch
+> B20s trustless-only, degen preset: [`b20/SKILL.md`](./b20/SKILL.md).
 
 ## The economics — enforced on-chain, not promised
 
@@ -264,6 +269,7 @@ Full list: [cc0.company/docs/smart-contracts](https://cc0.company/docs/smart-con
 
 ## Related skills
 
+- [`./b20/SKILL.md`](./b20/SKILL.md) — launch a B20 (Base-native standard): custom supply, paired pools, trustless + degen for agents
 - [`../staking/SKILL.md`](../staking/SKILL.md) — stake $cc0company, earn the 15% fee share
 - [`../nft-collections/SKILL.md`](../nft-collections/SKILL.md) — deploy NFT collections (Base + Ethereum)
 - [`../agentic-marketplace/SKILL.md`](../agentic-marketplace/SKILL.md) — pay-per-call services (x402/USDC)
