@@ -139,7 +139,7 @@ curl "https://cc0.company/api/b20/sponsor-launch?chainId=8453"   # → {"active"
 
 # 1. Pin your image first: POST https://cc0.company/api/store/launchpad/pin-image
 
-# 2. Launch — sponsor pays the gas:
+# 2. Launch — sponsor pays the gas (or via the SDK: b20.launchB20Sponsored({...}), zero signer needed):
 curl -X POST https://cc0.company/api/b20/sponsor-launch \
   -H "Content-Type: application/json" \
   -d '{

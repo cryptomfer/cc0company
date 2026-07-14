@@ -248,7 +248,7 @@ curl "https://cc0.company/api/cc0strategy/sponsor-launch?chainId=8453"   # → {
 # 1. Pin your image first (the sponsored route wants a ready URL):
 #    POST https://cc0.company/api/store/launchpad/pin-image  → { ipfsUri, gatewayUrl }
 
-# 2. Launch — sponsor pays the gas:
+# 2. Launch — sponsor pays the gas (or via the SDK: launchpad.launchTokenSponsored({...}), zero signer needed):
 curl -X POST https://cc0.company/api/cc0strategy/sponsor-launch \
   -H "Content-Type: application/json" \
   -d '{

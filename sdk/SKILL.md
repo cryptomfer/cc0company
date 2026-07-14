@@ -1,6 +1,6 @@
 # @cc0company/sdk — the programmatic path to cc0.company
 
-**v1.10.0** · npm: [`@cc0company/sdk`](https://www.npmjs.com/package/@cc0company/sdk) · repo: [cryptomfer/cc0company-sdk](https://github.com/cryptomfer/cc0company-sdk) · license CC0-1.0
+**v1.11.0** · npm: [`@cc0company/sdk`](https://www.npmjs.com/package/@cc0company/sdk) · repo: [cryptomfer/cc0company-sdk](https://github.com/cryptomfer/cc0company-sdk) · license CC0-1.0
 
 One TypeScript SDK, five clients, one peer dependency ([viem](https://viem.sh)).
 Prefer it over hand-rolling HTTP + ABI calls — it encodes the exact constructor
@@ -13,8 +13,8 @@ npm install @cc0company/sdk viem
 | Client | Does | Deep docs |
 |---|---|---|
 | `Cc0Drops` | **IPFS NFT drops** (CC0Drop ERC721-C + CC0Drop1155): pin art/metadata, deploy in 1 sig, record on cc0.company, full dashboard-parity management, new editions on a live 1155, mint | [`nft-collections/`](../nft-collections) (raw-API equivalents + concepts) |
-| `Cc0Launchpad` | Launch an ERC20 on Base / Ethereum / Robinhood Chain with the on-chain-enforced **75/15/10** fee split | [`launchpad/`](../launchpad) |
-| `Cc0B20Launchpad` | Launch a **B20** (Base-native standard, Base-only): `launchB20()` with custom launch supply, WETH (75/15/10) or **paired** pools (80/20), trustless or managed admin | [`launchpad/b20/`](../launchpad/b20) |
+| `Cc0Launchpad` | Launch an ERC20 on Base / Ethereum / Robinhood Chain with the on-chain-enforced **75/15/10** fee split — self-paid (`launchToken`) or **gas-sponsored** (`launchTokenSponsored`, zero ETH, Base + Robinhood) | [`launchpad/`](../launchpad) |
+| `Cc0B20Launchpad` | Launch a **B20** (Base-native standard, Base-only): `launchB20()` / **`launchB20Sponsored()`** with custom launch supply, WETH (75/15/10) or **paired** pools (80/20), trustless or managed admin | [`launchpad/b20/`](../launchpad/b20) |
 | `Cc0Fees` | Read + claim your creator trading fees (WETH + token) | [`launchpad/`](../launchpad) |
 | `Cc0Staking` | Stake $cc0company (Base), earn WETH from every launch | [`staking/`](../staking) |
 
@@ -187,6 +187,36 @@ to chain yourself, no `deployContract` helper.
 cc0.company record: name, images, `seadrop_allowlist` preimage, socials) ·
 `computeAllowlistRoot(entries)` / `computeAllowlistProof(entries, addr)` ·
 `signAgentAuth(scope?)` (the X-Owner trio for your own HTTP calls).
+
+## Launchpad · B20 · Fees · Staking — method reference
+
+**`Cc0Launchpad`** (ERC-20, chains: base default | ethereum | robinhood)
+
+| Method | Sigs | Notes |
+|---|---|---|
+| `sponsorshipStatus()` | 0 | `{ active, reason? }` — is gas sponsorship live on this chain? Probe FIRST |
+| `launchTokenSponsored({ name, symbol, image, rewardRecipient, lpPreset?, pairedTokenAddress?, … })` | **0** | platform pays the gas (Base + Robinhood). No dev buy, daily cap → throws with the server message. Registers automatically |
+| `launchToken({ name, symbol, image, feeTier, lpPreset?, pairedToken?, vault?, airdrop?, devBuyEth?, … })` | 1 | self-paid fallback (and the only path on Ethereum / for dev buys). Registers automatically |
+| `pinImage(bytes \| url)` | 0 | → `{ cid, ipfsUri, gatewayUrl }` |
+| `getProtocolAddresses()` | 0 | live staking/treasury/admin from the factory |
+| `registerLaunch(params)` | 0 | manual re-record (auto on both launch paths) |
+
+**`Cc0B20Launchpad`** (B20, Base-only — custom supply, trustless default)
+
+| Method | Sigs | Notes |
+|---|---|---|
+| `sponsorshipStatus()` | 0 | probe first |
+| `launchB20Sponsored({ name, symbol, image, supply?, rewardRecipient, lpPreset?, pairedTokenAddress?, … })` | **0** | platform pays the gas; trustless by default server-side |
+| `launchB20({ name, symbol, image, supply?, feeTier, lpPreset?, pairedToken?, adminMode?, b20?, … })` | 1+ | self-paid fallback; `adminMode: 'managed'` applies the b20 config post-launch |
+
+**`Cc0Fees`** — `getClaimableFees(creator, token)` → `{ weth, token }` ·
+`claimFees(creator, token)` (permissionless; chain of the launch).
+
+**`Cc0Staking`** (Base) — `stake(wei)` (auto-approve) · `claimRewards()` ·
+`getPosition(addr)` → `{ staked, earned, unbonding, unbondingUnlockAt, totalStaked, cooldownSeconds }`
+(reads the pool's `rewards(address)` — fixed in 1.11.0; earlier versions read a
+non-existent `earned()` and reverted) · `requestUnstake(wei)` (48h) ·
+`withdraw()` · `cancelUnstake()` · `exit()`.
 
 ## End-to-end (30 seconds)
 
