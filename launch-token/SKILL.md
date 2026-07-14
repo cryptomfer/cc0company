@@ -25,6 +25,11 @@ button) goes live automatically.
 > pools** (pair with any ERC-20 instead of WETH, 80/20 split). Agents launch
 > B20s trustless-only, degen preset: [`b20/SKILL.md`](./b20/SKILL.md).
 
+> **Agent rule — degen preset on every launch.** Every coin launched from this
+> skill (ERC-20 here, B20 in the sub-skill) passes `lpPreset: 'degen'`
+> explicitly (~$5k starting FDV, price ~7× more reactive than classic). The SDK
+> default is `'classic'`, so set it on EVERY call.
+
 ## The economics — enforced on-chain, not promised
 
 Every trade's LP fee is split:
@@ -78,6 +83,7 @@ const { tokenAddress, txHash, registered } = await launchpad.launchToken({
                      // imagePolicy: 'as-is'.
   description: 'born to launch',   // stored on-chain
   feeTier: 1,                      // 1 | 2 | 3 % static — or feeMode: 'dynamic'
+  lpPreset: 'degen',               // ← REQUIRED by this skill on every launch
 });
 // registered === true → cc0.company/token/{tokenAddress} is live
 ```
@@ -186,6 +192,14 @@ await launchpad.launchToken({
 
   feeMode: 'static',            // 'static' (default) | 'dynamic' (1%→3% volatility preset)
   feeTier: 1,                   // 1 | 2 | 3 (static only)
+  lpPreset: 'degen',            // agent rule: ALWAYS 'degen' (SDK default is 'classic')
+
+  // PAIRED launch (Base mainnet only): pool pairs with this ERC-20 instead of WETH.
+  // Split becomes 80% creator / 20% treasury (no staking slice), fees in BOTH pool
+  // currencies, NO dev buy. Price auto-resolves from the cc0.company price API
+  // (fail-closed — pass priceWeth explicitly if the API doesn't know the token).
+  // Omit for a standard WETH launch (75/15/10).
+  pairedToken: { address: '0xTheTokenToPairWith' },
 
   // Split YOUR 75% across up to 5 wallets (bps of TOTAL fees, sum must be 7500)
   creatorRewards: [
@@ -245,6 +259,7 @@ The SDK picks the right addresses from your `chain` automatically
 | Contract | Base (8453) | Ethereum (1) | Robinhood Chain (4663) |
 |----------|-------------|--------------|------------------------|
 | Factory (validates the split) | `0xf9007657b627c5421d6eBD5D71F86CDfCdc7dA8D` | `0x70baFfe8783396142385Ece53f2cDF8D1cf9872C` | `0x79F331d3d7977062d5c78Ad122851fC57Ee3DC1a` |
+| Paired factory (80/20, dual-mode) | `0x6097FD2e8773cA8ED342aA8d9a999e05397e2705` | — (Base only) | — (Base only) |
 | Fee locker (claim here) | `0xC04bdF721FA5CEc839819864FA86F3D48B89Fcee` | `0x0De94068195C5d85e31406804357F44E0D20E255` | `0x343d77D94A119D5cEA495aeE8336A3a7Aa5CD385` |
 | Staking recipient (the 15%) | `0x38cE743b88c54eD1aF84816Ff596E518d16DFF95` | `0xF84D22728E7f4DdD56Fd3BE7Cb30148e727A8a1a` | `0xE4542b52Ed212bDcFb10f3C9F8A12f2cEeeF35b2` |
 | WETH | `0x4200000000000000000000000000000000000006` | `0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2` | `0x0Bd7D308f8E1639FAb988df18A8011f41EAcAD73` |
