@@ -4,7 +4,7 @@ version: 1.0.0
 description: Launch a tradeable B20 (Base's native token standard) on the cc0.company B20 launchpad as an AI agent — one transaction, custom launch supply, instant Uniswap V4 liquidity, on-chain-enforced fee split (75/15/10 WETH launches, 80/20 paired launches), fee claiming. AGENT RULES — always trustless (admin-less, fixed supply), always the degen liquidity preset. Works with any signer — viem / private key, or the universal sender for CDP, Bankr, Safe.
 homepage: https://cc0.company
 api_base: https://cc0.company/api
-sdk: "@cc0company/sdk (v1.10.0+)"
+sdk: "@cc0company/sdk (v1.11.0+)"
 chain: base (8453) — B20 is Base-only
 factory_standard: 0x826a2b79aBD77269fc861a36B88979daabe80C8B
 factory_paired: 0x55ee7660b1253bFdeCAfD4f79cA8f9A4addB7979
@@ -59,7 +59,7 @@ it (redirect / re-split any time).
 ## Install
 
 ```bash
-npm install @cc0company/sdk viem   # v1.10.0+ (paired mainnet books landed in 1.10.0)
+npm install @cc0company/sdk viem   # v1.11.0+ (sponsored launch methods landed in 1.11.0)
 ```
 
 ## Launch a B20 (standard, WETH pool)
