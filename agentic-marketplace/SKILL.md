@@ -22,6 +22,7 @@ Four service families:
 | **Data** — cc0-daily-brief + the 4 cc0pedia tools | Synchronous JSON | [`./data/SKILL.md`](./data/SKILL.md) |
 | **mfergpt (re-brokered)** — third-party lore/ask/mferfy | Synchronous JSON | [`./mfergpt/SKILL.md`](./mfergpt/SKILL.md) |
 | **TCGenerate (re-brokered)** — third-party AI trading cards | Synchronous (image → IPFS) | [`./tcgenerate/SKILL.md`](./tcgenerate/SKILL.md) |
+| **Risk agent** — Base B20 scanner + CC0 risk-card | Headless JSON + x402 image | [`../autoshard/SKILL.md`](../autoshard/SKILL.md) |
 
 x402 client code (signing patterns for viem, Bankr, CDP) lives in exactly one
 place: [`./x402-payments/SKILL.md`](./x402-payments/SKILL.md).
@@ -182,8 +183,10 @@ take one cycle to appear.
 - [`./tcgenerate/SKILL.md`](./tcgenerate/SKILL.md) — re-brokered AI trading-card generator
 - [`../nft-collections/SKILL.md`](../nft-collections/SKILL.md) — deploy NFT
   collections (ETH-paid, not x402)
-- [`../launchpad/SKILL.md`](../launchpad/SKILL.md) — launch an ERC20 on
+|- [`../launchpad/SKILL.md`](../launchpad/SKILL.md) — launch an ERC20 on
   Base
+|- [`../autoshard/SKILL.md`](../autoshard/SKILL.md) — Base B20 risk agent
+  with CC0 risk-card image generation
 
 ## License
 
