@@ -289,6 +289,68 @@ curl -X POST https://cc0.company/api/cc0strategy/sponsor-launch \
   `new Cc0Launchpad({}).registerLaunch({ tokenAddress, txHash, name, symbol, image, creator, lpPreset: 'degen' })`
   (plain HTTP, no gas).
 - Fee claiming is unchanged (below) — fees always accrue to `rewardRecipient`.
+- **Socials at launch:** pass `"socials": ["https://x.com/...", "https://t.me/...", "https://mysite.xyz"]`
+  in the launch body — the platform classifies each URL by hostname (X, Telegram,
+  Instagram, TikTok, Farcaster, Discord; anything else = website) and they show
+  up on the token page immediately. Forgot them? Add them any time via the
+  manage endpoint below.
+
+## Manage your token (image, description, website, socials)
+
+**`PATCH https://cc0.company/api/store/token-launches/{tokenAddress}`** — the
+creator (and ONLY the creator) can update the presentation of their launch at
+any time, for **every token type** (ERC20 and B20, sponsored or self-paid).
+Works with the token address directly, no registry id needed.
+
+**Updatable fields:** `image_url`, `description`, `website_url`, `x_url`,
+`instagram_url`, `tiktok_url`, `telegram_url`, `farcaster_url`, `discord_url`.
+Everything else (name, symbol, supply, addresses) is immutable. Send `""` or
+`null` to clear a field. URLs must be http(s) (`image_url` also accepts
+`ipfs://`, auto-served through the gateway). Changes appear on
+`cc0.company/token/{address}` right away.
+
+**Auth — wallet signature, no API key.** Sign the message
+`cc0.company:agent-auth:{unix_ms}` (current time in **milliseconds**, valid
+±15 min) with the wallet that launched the token (`rewardRecipient` /
+`creator_wallet`), then send the three headers:
+
+```bash
+MSG="cc0.company:agent-auth:$(date +%s%3N)"
+SIG=$(cast wallet sign --private-key $PK "$MSG")   # or any personal_sign
+
+curl -X PATCH "https://cc0.company/api/store/token-launches/0xYourToken" \
+  -H "Content-Type: application/json" \
+  -H "X-Owner-Address: 0xYourCreatorWallet" \
+  -H "X-Owner-Signature: $SIG" \
+  -H "X-Owner-Message: $MSG" \
+  -d '{
+    "image_url": "https://x.com/user/status/123…",
+    "description": "updated story",
+    "website_url": "https://mytoken.xyz",
+    "x_url": "https://x.com/mytoken",
+    "telegram_url": "https://t.me/mytoken"
+  }'
+# → { "success": true, "launch": {…}, "updated_fields": ["image_url", …] }
+```
+
+**Bankr / smart wallets work natively.** The endpoint verifies EOA signatures
+directly AND smart-account signatures via **EIP-1271 on Base** — so a Bankr
+smart wallet signs through its API and passes:
+
+```bash
+# 1. Bankr signs the auth message (personal_sign)
+curl -X POST https://api.bankr.bot/wallet/sign \
+  -H "Authorization: Bearer $BANKR_API_KEY" -H "Content-Type: application/json" \
+  -d '{"type": "personal_sign", "message": "cc0.company:agent-auth:1752700000000"}'
+# → { "signature": "0x…" }
+# 2. Send the PATCH with X-Owner-Address = the Bankr wallet address that
+#    launched the token, X-Owner-Signature = that signature, X-Owner-Message =
+#    the exact message you signed. Done.
+```
+
+Errors: `401` bad/expired signature (re-sign with a fresh timestamp), `403`
+signer is not the creator wallet, `404` token not in the registry (register it
+first), `400` invalid field/URL.
 
 ## Claim your fees
 

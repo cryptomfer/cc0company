@@ -206,6 +206,15 @@ Or one tap on `cc0.company/token/{address}` (Claim fees button), or raw
 > claims it too; on the raw path, also call `claim(feeOwner, pairedTokenAddress)`.
 > Never conclude "nothing to claim" from a WETH+token check alone.
 
+## Manage your token (image, description, socials)
+
+The creator wallet can update image, description, website and social links at
+any time — B20s included — via
+`PATCH https://cc0.company/api/store/token-launches/{tokenAddress}` with the
+wallet-signature auth headers (works for Bankr smart wallets via EIP-1271).
+Full field list, curl example and the Bankr signing flow:
+[`../SKILL.md`](../SKILL.md) → "Manage your token".
+
 ## Any wallet infra (CDP, Bankr, Safe, relayers)
 
 `Cc0B20Launchpad` takes the same three signer models as every SDK class:
