@@ -1,10 +1,10 @@
 ---
 name: cc0company-launch-b20
-version: 1.0.0
+version: 1.1.0
 description: Launch a tradeable B20 (Base's native token standard) on the cc0.company B20 launchpad as an AI agent — one transaction, custom launch supply, instant Uniswap V4 liquidity, on-chain-enforced fee split (75/15/10 WETH launches, 80/20 paired launches), fee claiming. AGENT RULES — always trustless (admin-less, fixed supply), always the degen liquidity preset. Works with any signer — viem / private key, or the universal sender for CDP, Bankr, Safe.
 homepage: https://cc0.company
 api_base: https://cc0.company/api
-sdk: "@cc0company/sdk (v1.11.0+)"
+sdk: "@cc0company/sdk (v1.12.0+)"
 chain: base (8453) — B20 is Base-only
 factory_standard: 0x826a2b79aBD77269fc861a36B88979daabe80C8B
 factory_paired: 0x55ee7660b1253bFdeCAfD4f79cA8f9A4addB7979
@@ -30,10 +30,11 @@ exist on Ethereum or Robinhood Chain.
    `adminMode`** (and never pass `'managed'` or a `b20` config block — those are
    human dashboard flows).
 2. **Degen liquidity preset, always.** Every launch from this skill passes
-   `lpPreset: 'degen'` explicitly (~$5k starting FDV at the 100B default supply,
-   price ~7× more reactive than classic; a custom supply scales the FDV
-   proportionally). The SDK default is `'classic'`, so this must be set on EVERY
-   call.
+   `lpPreset: 'degen'` explicitly (~$5k starting FDV, price ~7× more reactive
+   than classic; the starting tick is derived from the supply, so the preset's
+   FDV holds at ANY supply). `launchB20`'s default is `'classic'` (unlike
+   `Cc0Launchpad.launchToken`, which defaults `'degen'` since SDK 1.12.0), so
+   this must be set on EVERY call.
 3. **Gas-sponsored by DEFAULT.** Probe
    `GET /api/b20/sponsor-launch?chainId=8453` first — `{"active":true}` → launch
    through the sponsored POST (section below; the platform pays the gas). Fall
@@ -59,7 +60,7 @@ it (redirect / re-split any time).
 ## Install
 
 ```bash
-npm install @cc0company/sdk viem   # v1.11.0+ (sponsored launch methods landed in 1.11.0)
+npm install @cc0company/sdk viem   # v1.12.0+ (vanity mining 1.11.2+, sponsored methods 1.11.0+)
 ```
 
 ## Launch a B20 (standard, WETH pool)
@@ -81,7 +82,7 @@ const { tokenAddress, txHash, registered } = await b20.launchB20({
                             //   total: the factory mints exactly this and seeds the pool
                             //   with it. Omit ⇒ 100B default. Bounds: [1, 1e18] whole.
 
-  feeTier: 1,               // 1 | 2 | 3 (%) static — or feeMode: 'dynamic' (1%→3%)
+  feeTier: 1,               // 1 | 2 | 3 | 6.9 (%) static — or feeMode: 'dynamic' (1%→3%)
   lpPreset: 'degen',        // ← REQUIRED by this skill on every launch
   // adminMode omitted      // ← stays 'trustless' (the default). Never pass 'managed'.
 });
@@ -91,6 +92,15 @@ const { tokenAddress, txHash, registered } = await b20.launchB20({
 The starting tick is derived from the supply automatically, so the preset's FDV
 holds at ANY supply — a 69-supply degen launch and a 100B degen launch both start
 at a sane pool price.
+
+**Vanity address** (SDK ≥ 1.11.2): every `launchB20` auto-mines the salt so the
+token address ends in `…cc0`. B20 addresses are deterministic —
+`0xb2` + `00`×10 + first 9 bytes of `keccak256(abi.encode(deployer, salt))`,
+where the launchpad derives `salt = keccak256(abi.encode(tokenAdmin, userSalt))`
+and `deployer` is the factory. Mining happens off-chain and never blocks a
+launch (falls back to a random salt); read the final address from the
+`TokenCreated` event, don't precompute a non-vanity one. All B20s are
+18-decimals.
 
 Optional extras (same shapes as the [ERC-20 skill](../SKILL.md)): `sniperTax`,
 `vault` (lockup ≥ 7d), `airdrop` (merkle, lockup ≥ 1d), `devBuyEth`

@@ -1,6 +1,6 @@
 # @cc0company/sdk — the programmatic path to cc0.company
 
-**v1.11.1** · npm: [`@cc0company/sdk`](https://www.npmjs.com/package/@cc0company/sdk) · repo: [cryptomfer/cc0company-sdk](https://github.com/cryptomfer/cc0company-sdk) · license CC0-1.0
+**v1.12.0** · npm: [`@cc0company/sdk`](https://www.npmjs.com/package/@cc0company/sdk) · repo: [cryptomfer/cc0company-sdk](https://github.com/cryptomfer/cc0company-sdk) · license CC0-1.0
 
 One TypeScript SDK, five clients, one peer dependency ([viem](https://viem.sh)).
 Prefer it over hand-rolling HTTP + ABI calls — it encodes the exact constructor
@@ -10,10 +10,30 @@ orders, merkle tree, auth messages and registry contracts the platform uses.
 npm install @cc0company/sdk viem
 ```
 
+> **What changed in 1.12.0** (pin ≥ 1.12.0 — 1.11.x has a fund-locking bug):
+> - **Born-renounced by default**: `launchToken`'s `tokenAdmin` now defaults to
+>   `address(0)` — scanners (GoPlus, DexScreener) read "ownership renounced",
+>   same as platform launches. Pass the new optional `tokenAdmin` param only if
+>   you genuinely want a metadata admin (scanners will then flag it).
+> - **Slice order is fees-only**: vault admin, airdrop admin and dev-buy
+>   proceeds ALWAYS derive from the launching account (or the new
+>   `proceedsRecipient?` param) — never from `creatorRewards[0]`. Under 1.11.x
+>   an Option B (`nftCollection`) launch set them to the fee-distributor
+>   CONTRACT, permanently locking vault tokens and stranding dev-buy proceeds.
+> - **`lpPreset` defaults to `'degen'`** on `Cc0Launchpad` (was `'classic'`);
+>   `lp_preset` is always recorded. `Cc0B20Launchpad.launchB20` still defaults
+>   `'classic'` — keep passing it explicitly there.
+> - **Robinhood paired launches now work**: the RH paired suite ships in the
+>   dist and `resolvePairedToken` is chain-correct (1.11.x hardcoded Base, so RH
+>   paired auto-pricing could never resolve).
+> - Sponsored endpoints are **server-side/same-origin only** (no CORS) — see below.
+> - `registerLaunch` gains airdrop fields; new root exports
+>   `guardedPairedStartingTick`, `NFT_FACTORY_ABI`.
+
 | Client | Does | Deep docs |
 |---|---|---|
 | `Cc0Drops` | **IPFS NFT drops** (CC0Drop ERC721-C + CC0Drop1155): pin art/metadata, deploy in 1 sig, record on cc0.company, full dashboard-parity management, new editions on a live 1155, mint | [`nft-collections/`](../nft-collections) (raw-API equivalents + concepts) |
-| `Cc0Launchpad` | Launch an ERC20 on Base / Ethereum / Robinhood Chain with the on-chain-enforced **75/15/10** fee split — self-paid (`launchToken`) or **gas-sponsored** (`launchTokenSponsored`, zero ETH, Base + Robinhood) | [`launchpad/`](../launchpad) |
+| `Cc0Launchpad` | Launch an ERC20 on Base / Ethereum / Robinhood Chain with the on-chain-enforced **75/15/10** fee split — or **paired** pools vs any ERC-20 (**80/20**, Base + Robinhood, incl. RH tokenized stocks). Self-paid (`launchToken`) or **gas-sponsored** (`launchTokenSponsored`, zero ETH, Base + Robinhood — servers/scripts/agents only, no CORS) | [`launchpad/`](../launchpad) |
 | `Cc0B20Launchpad` | Launch a **B20** (Base-native standard, Base-only): `launchB20()` / **`launchB20Sponsored()`** with custom launch supply, WETH (75/15/10) or **paired** pools (80/20), trustless or managed admin | [`launchpad/b20/`](../launchpad/b20) |
 | `Cc0Fees` | Read + claim your creator trading fees — WETH + token, and the PAIRED pool asset on paired launches (auto-detected, v1.11.1+) | [`launchpad/`](../launchpad) |
 | `Cc0Staking` | Stake $cc0company (Base), earn WETH from every launch | [`staking/`](../staking) |
@@ -194,20 +214,28 @@ cc0.company record: name, images, `seadrop_allowlist` preimage, socials) ·
 
 | Method | Sigs | Notes |
 |---|---|---|
-| `sponsorshipStatus()` | 0 | `{ active, reason? }` — is gas sponsorship live on this chain? Probe FIRST |
-| `launchTokenSponsored({ name, symbol, image, rewardRecipient, lpPreset?, pairedTokenAddress?, … })` | **0** | platform pays the gas (Base + Robinhood). No dev buy, daily cap → throws with the server message. Registers automatically |
-| `launchToken({ name, symbol, image, feeTier, lpPreset?, pairedToken?, vault?, airdrop?, devBuyEth?, … })` | 1 | self-paid fallback (and the only path on Ethereum / for dev buys). Registers automatically |
+| `sponsorshipStatus()` | 0 | `{ active, reason? }` — is gas sponsorship live on this chain? Probe FIRST. **Server-side/same-origin only** (no CORS): from a browser on a third-party origin it reads as inactive |
+| `launchTokenSponsored({ name, symbol, image, rewardRecipient, lpPreset?, pairedTokenAddress?, … })` | **0** | platform pays the gas (Base + Robinhood). No dev buy, daily cap → throws with the server message. Registers automatically. **Servers, scripts and agents only** — the endpoints send no CORS headers, so third-party BROWSER integrators must use `launchToken()` |
+| `launchToken({ name, symbol, image, feeTier, lpPreset?, pairedToken?, vault?, airdrop?, devBuyEth?, proceedsRecipient?, tokenAdmin?, … })` | 1 | self-paid fallback (and the only path on Ethereum / for dev buys). Registers automatically. `feeTier: 1 \| 2 \| 3 \| 6.9`. `lpPreset` defaults `'degen'` (1.12.0+). Born-renounced: `tokenAdmin` defaults `address(0)`. `creatorRewards` slices are FEES ONLY — vault/airdrop admin + dev-buy proceeds go to the launching account or `proceedsRecipient` |
 | `pinImage(bytes \| url)` | 0 | → `{ cid, ipfsUri, gatewayUrl }` |
 | `getProtocolAddresses()` | 0 | live staking/treasury/admin from the factory |
-| `registerLaunch(params)` | 0 | manual re-record (auto on both launch paths) |
+| `registerLaunch(params)` | 0 | manual re-record (auto on both launch paths). 1.12.0+ accepts `airdropMerkleRoot` / `airdropEntriesCid` / `airdropEntriesJson` / `airdropExtension` — pass them on manual `prepareLaunchTransaction` flows or the platform can't serve airdrop proofs |
+
+Paired launches (`pairedToken` / `pairedTokenAddress`) work on **Base AND
+Robinhood Chain** (80/20, no staking slice, fees in both pool assets — on RH,
+pair against a tokenized stock). **RH paired requires SDK ≥ 1.12.0**: earlier
+versions hardcoded Base in `resolvePairedToken`, so RH auto-pricing never
+resolved. Hand-building a paired config? Use the exported
+`guardedPairedStartingTick` — a fixed tick with a custom supply collapses the
+FDV and lets one buy drain the pool.
 
 **`Cc0B20Launchpad`** (B20, Base-only — custom supply, trustless default)
 
 | Method | Sigs | Notes |
 |---|---|---|
-| `sponsorshipStatus()` | 0 | probe first |
+| `sponsorshipStatus()` | 0 | probe first (server-side only — no CORS, same as above) |
 | `launchB20Sponsored({ name, symbol, image, supply?, rewardRecipient, lpPreset?, pairedTokenAddress?, … })` | **0** | platform pays the gas; trustless by default server-side |
-| `launchB20({ name, symbol, image, supply?, feeTier, lpPreset?, pairedToken?, adminMode?, b20?, … })` | 1+ | self-paid fallback; `adminMode: 'managed'` applies the b20 config post-launch |
+| `launchB20({ name, symbol, image, supply?, feeTier, lpPreset?, pairedToken?, adminMode?, b20?, … })` | 1+ | self-paid fallback; `adminMode: 'managed'` applies the b20 config post-launch. `lpPreset` still defaults `'classic'` here — pass `'degen'` explicitly. Every launch auto-mines a vanity salt so the token address ends in `…cc0` (never blocks — falls back to a random salt) |
 
 **`Cc0Fees`** — `getClaimableFees(creator, token)` → `{ weth, token, paired? }` (paired asset auto-detected for paired launches, v1.11.1+) ·
 `claimFees(creator, token)` claims every non-zero asset incl. the paired one (permissionless; chain of the launch).

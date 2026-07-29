@@ -1,14 +1,16 @@
 ---
 name: cc0company-launchpad
-version: 2.0.0
-description: Launch your own token on the cc0.company launchpad (Base · Ethereum · Robinhood Chain, Uniswap V4) as an AI agent — one transaction, instant liquidity, 75% of all trading fees back to you forever, enforced on-chain. Wallet flows for viem / private key / CDP, an HTTP-only sender flow for Bankr-style wallets, and fee claiming. B20 launches (Base's native token standard, custom supply, paired pools) are the b20/ sub-skill; $cc0company staking is the cc0company-staking skill.
+version: 2.1.0
+description: Launch your own token on the cc0.company launchpad (Base · Ethereum · Robinhood Chain, Uniswap V4) as an AI agent — one transaction, instant liquidity, 75% of all trading fees back to you forever, enforced on-chain (paired launches 80/20, Base + Robinhood, incl. Robinhood tokenized stocks). Wallet flows for viem / private key / CDP, an HTTP-only sender flow for Bankr-style wallets, and fee claiming. B20 launches (Base's native token standard, custom supply, paired pools) are the b20/ sub-skill; $cc0company staking is the cc0company-staking skill.
 homepage: https://cc0.company
 api_base: https://cc0.company/api
-sdk: "@cc0company/sdk"
+sdk: "@cc0company/sdk (v1.12.0+)"
 chains: base (8453) | ethereum (1) | robinhood (4663)
 factory_base: 0xf9007657b627c5421d6eBD5D71F86CDfCdc7dA8D
 factory_ethereum: 0x70baFfe8783396142385Ece53f2cDF8D1cf9872C
 factory_robinhood: 0x79F331d3d7977062d5c78Ad122851fC57Ee3DC1a
+paired_factory_base: 0x6097FD2e8773cA8ED342aA8d9a999e05397e2705
+paired_factory_robinhood: 0x65D667870E7B5b4b7113e5BaB255efE052cf3B36
 cc0company_token: 0x67c5F00491c09cbCF6359f95690574E6106bb3CF # lives on Base; staking happens there
 ---
 
@@ -27,8 +29,19 @@ button) goes live automatically.
 
 > **Agent rule — degen preset on every launch.** Every coin launched from this
 > skill (ERC-20 here, B20 in the sub-skill) passes `lpPreset: 'degen'`
-> explicitly (~$5k starting FDV, price ~7× more reactive than classic). The SDK
-> default is `'classic'`, so set it on EVERY call.
+> explicitly (~$5k starting FDV, price ~7× more reactive than classic). Since
+> SDK 1.12.0 `launchToken`'s own default IS `'degen'` — but the sponsored HTTP
+> route and B20 `launchB20` still default `'classic'`, so set it on EVERY call
+> anyway.
+
+> **What changed in SDK 1.12.0** (pin ≥ 1.12.0 — 1.11.x has a fund-locking bug):
+> tokens are **born-renounced** (`tokenAdmin` defaults `address(0)` — scanners
+> read "ownership renounced"; optional `tokenAdmin` param restores an admin);
+> `creatorRewards` slices are **fees only** — vault/airdrop admin and dev-buy
+> proceeds always go to the launching account or the new `proceedsRecipient`
+> param, never to `creatorRewards[0]` (1.11.x could lock them in a contract);
+> `lpPreset` defaults `'degen'`; **Robinhood paired launches now work**
+> (chain-correct price resolution + the RH paired suite in the dist).
 
 > **Agent rule — gas-sponsored by DEFAULT.** On Base and Robinhood Chain, try
 > the sponsored path first: probe `GET /api/cc0strategy/sponsor-launch?chainId=…`
@@ -90,7 +103,7 @@ const { tokenAddress, txHash, registered } = await launchpad.launchToken({
                      // pinning fails the launch fails — by design. Escape hatch:
                      // imagePolicy: 'as-is'.
   description: 'born to launch',   // stored on-chain
-  feeTier: 1,                      // 1 | 2 | 3 % static — or feeMode: 'dynamic'
+  feeTier: 1,                      // 1 | 2 | 3 | 6.9 % static — or feeMode: 'dynamic'
   lpPreset: 'degen',               // ← REQUIRED by this skill on every launch
 });
 // registered === true → cc0.company/token/{tokenAddress} is live
@@ -199,21 +212,35 @@ await launchpad.launchToken({
   image: 'ipfs://…',
 
   feeMode: 'static',            // 'static' (default) | 'dynamic' (1%→3% volatility preset)
-  feeTier: 1,                   // 1 | 2 | 3 (static only)
-  lpPreset: 'degen',            // agent rule: ALWAYS 'degen' (SDK default is 'classic')
+  feeTier: 1,                   // 1 | 2 | 3 | 6.9 (%, static only)
+  lpPreset: 'degen',            // agent rule: ALWAYS 'degen' explicitly (SDK ≥1.12.0
+                                // defaults 'degen' anyway; sponsored route + B20 don't)
 
-  // PAIRED launch (Base mainnet only): pool pairs with this ERC-20 instead of WETH.
-  // Split becomes 80% creator / 20% treasury (no staking slice), fees in BOTH pool
-  // currencies, NO dev buy. Price auto-resolves from the cc0.company price API
-  // (fail-closed — pass priceWeth explicitly if the API doesn't know the token).
-  // Omit for a standard WETH launch (75/15/10).
+  // PAIRED launch (Base + Robinhood Chain, SDK ≥ 1.12.0 for Robinhood): pool pairs
+  // with this ERC-20 instead of WETH. Split becomes 80% creator / 20% treasury (no
+  // staking slice), fees in BOTH pool currencies, NO dev buy / creatorRewards /
+  // nftCollection. Price auto-resolves from the cc0.company price API (fail-closed —
+  // pass priceWeth explicitly if the API doesn't know the token). On Robinhood
+  // Chain the paired token is typically one of the ~200 official tokenized stocks
+  // (see below). Omit for a standard WETH launch (75/15/10).
   pairedToken: { address: '0xTheTokenToPairWith' },
 
-  // Split YOUR 75% across up to 5 wallets (bps of TOTAL fees, sum must be 7500)
+  // Split YOUR 75% across up to 5 wallets (bps of TOTAL fees, sum must be 7500).
+  // FEES ONLY — slice order/recipients NEVER affect vault/airdrop admin or dev-buy
+  // proceeds (those follow proceedsRecipient below).
   creatorRewards: [
     { recipient: '0xYou',     bps: 5000, feePreference: 'both' },   // ETH + token
     { recipient: '0xPartner', bps: 2500, feePreference: 'paired' }, // ETH only
   ],
+
+  // Who receives the NON-FEE proceeds: vault admin + airdrop admin + dev-buy tokens.
+  // Default: the launching account (SDK ≥ 1.12.0 — never a creatorRewards slice).
+  proceedsRecipient: '0xYou',
+
+  // On-chain token admin (metadata-only role). Default address(0) — BORN-RENOUNCED
+  // (scanners read "ownership renounced"). Set an address ONLY if you want a
+  // metadata admin; scanners will then flag the token as NOT renounced.
+  // tokenAdmin: '0x…',
 
   // Anti-snipe: descending tax on the first seconds… or omit for a 2-block MEV delay
   sniperTax: { startingBps: 800_000, endingBps: 50_000, secondsToDecay: 15 },
@@ -221,8 +248,11 @@ await launchpad.launchToken({
   // Lock supply for yourself (lockup ≥ 7 days, optional linear vesting)
   vault: { percentage: 10, lockupSeconds: 604800, vestingSeconds: 2592000 },
 
-  // Merkle airdrop of supply (lockup ≥ 1 day)
-  airdrop: { merkleRoot: '0x…', percentage: 5 },
+  // Merkle airdrop of supply (lockup ≥ 1 day). ALSO pass the leaves — entriesCid
+  // (IPFS CID of the leaves JSON, preferred) or entriesJson (small sets inline) —
+  // or the platform claim flow cannot serve merkle proofs and recipients can't
+  // claim through cc0.company (SDK ≥ 1.12.0 records them + the airdrop extension).
+  airdrop: { merkleRoot: '0x…', percentage: 5, entriesCid: 'bafy…' },
 
   // Buy your own token in the launch transaction
   devBuyEth: '0.05',
@@ -230,6 +260,27 @@ await launchpad.launchToken({
   register: true,               // default — auto-registers on cc0.company
 });
 ```
+
+### Paired launches on Robinhood Chain — tokenized stocks
+
+Robinhood Chain's flagship paired use case: pair your token against one of the
+**~200 official Robinhood tokenized stocks** (AAPL, TSLA, NVDA, MSFT, SPY, QQQ,
+COIN, MSTR, GME, …). Every one is a contract created by the official issuer
+proxy `0x4783C67b63dE2B358Ac5951a7D41F47A38F3C046` (exported by the SDK as
+`ROBINHOOD_TOKENIZED_STOCK_ISSUER`) — all 18-decimals, named
+`"<Company> • Robinhood Token"`. Enumerate them from Blockscout:
+
+```
+GET https://robinhoodchain.blockscout.com/api/v2/addresses/0x4783C67b63dE2B358Ac5951a7D41F47A38F3C046/internal-transactions
+→ paginate via next_page_params, keep items where type matches /create/i,
+  take item.created_contract.hash, resolve symbol()/name() on-chain.
+```
+
+Then launch with `chain: 'robinhood'` and
+`pairedToken: { address: '0xTheStock' }` — **requires SDK ≥ 1.12.0** (earlier
+versions hardcoded Base in the price lookup, so RH paired auto-pricing never
+resolved). The RH paired factory (`0x65D6…3B36`) is separate from the standard
+RH factory and is picked automatically when `pairedToken` is set.
 
 ## DEFAULT path — gas-sponsored launch (Base + Robinhood, zero ETH)
 
@@ -263,8 +314,12 @@ curl -X POST https://cc0.company/api/cc0strategy/sponsor-launch \
 # → { "success": true, "tokenAddress": "0x…", "txHash": "0x…", "sponsored": true }
 ```
 
-- `pairedTokenAddress` works here too (Base only) — the server resolves the
-  paired price itself, fail-closed.
+- `pairedTokenAddress` works here too (Base + Robinhood Chain) — the server
+  resolves the paired price itself, fail-closed. On Robinhood, pair against a
+  tokenized stock (see the section above).
+- **These endpoints are server-side/same-origin only** (no CORS headers): calls
+  from a browser on a third-party origin are blocked — browser integrators use
+  the self-signed Path A/B. Servers, scripts and agents are unaffected.
 - **Image rules (NEVER block a launch on the image):**
   `image` is **optional** — omit it and the platform default is applied; do NOT
   ask the user for one. Pass **whatever URL you have** — a direct image URL OR
@@ -381,8 +436,9 @@ await fees.claimFees(creatorWallet, tokenAddress);        // claims every non-ze
 
 ## Stake $cc0company
 
-15% of every launchpad token's trading fees flow to **$cc0company stakers** in
-WETH — stake once on Base and earn from launches on all three chains. The full
+15% of every standard (WETH-paired) launchpad token's trading fees flow to
+**$cc0company stakers** in WETH — stake once on Base and earn from launches on
+all three chains. (Paired launches are 80/20 and carry no staking slice.) The full
 stake / claim / unstake flow (SDK + any-wallet `sender`), the 48h unbond
 cooldown, and the staking contract addresses live in the dedicated skill:
 [`../staking/SKILL.md`](../staking/SKILL.md).
@@ -396,7 +452,7 @@ The SDK picks the right addresses from your `chain` automatically
 | Contract | Base (8453) | Ethereum (1) | Robinhood Chain (4663) |
 |----------|-------------|--------------|------------------------|
 | Factory (validates the split) | `0xf9007657b627c5421d6eBD5D71F86CDfCdc7dA8D` | `0x70baFfe8783396142385Ece53f2cDF8D1cf9872C` | `0x79F331d3d7977062d5c78Ad122851fC57Ee3DC1a` |
-| Paired factory (80/20, dual-mode) | `0x6097FD2e8773cA8ED342aA8d9a999e05397e2705` | — (Base only) | — (Base only) |
+| Paired factory (80/20, dual-mode) | `0x6097FD2e8773cA8ED342aA8d9a999e05397e2705` | — (not deployed) | `0x65D667870E7B5b4b7113e5BaB255efE052cf3B36` |
 | Fee locker (claim here) | `0xC04bdF721FA5CEc839819864FA86F3D48B89Fcee` | `0x0De94068195C5d85e31406804357F44E0D20E255` | `0x343d77D94A119D5cEA495aeE8336A3a7Aa5CD385` |
 | Staking recipient (the 15%) | `0x38cE743b88c54eD1aF84816Ff596E518d16DFF95` | `0xF84D22728E7f4DdD56Fd3BE7Cb30148e727A8a1a` | `0xE4542b52Ed212bDcFb10f3C9F8A12f2cEeeF35b2` |
 | WETH | `0x4200000000000000000000000000000000000006` | `0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2` | `0x0Bd7D308f8E1639FAb988df18A8011f41EAcAD73` |

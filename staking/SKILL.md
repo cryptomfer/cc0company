@@ -23,11 +23,12 @@ wallet** signs; no admin can move, freeze, or reassign a stake. Staking lives on
 
 ## Where the rewards come from
 
-Every launchpad token's LP fee is split **75% creator / 15% stakers / 10%
-treasury**, enforced on-chain by the factory (see
+Every standard (WETH-paired) launchpad token's LP fee is split **75% creator /
+15% stakers / 10% treasury**, enforced on-chain by the factory (see
 [`../launchpad/SKILL.md`](../launchpad/SKILL.md)). The 15% staker slice is
 routed to this pool as WETH and pooled per staked token (Synthetix-style
-`rewardPerToken` accumulator), claimable at any time.
+`rewardPerToken` accumulator), claimable at any time. (Paired launches split
+80/20 creator/treasury and carry no staker slice.)
 
 APR is variable — it tracks platform trading volume ÷ total staked, so never
 present the live rate as fixed or guaranteed.
