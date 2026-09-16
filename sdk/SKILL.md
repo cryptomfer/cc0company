@@ -179,14 +179,14 @@ to chain yourself, no `deployContract` helper.
 | Method | Sigs | Mirrors |
 |---|---|---|
 | `setPublicPhase721(c, phase)` / `setPublicPhase1155(c, id, phase)` | 1 | price / window / cap / on-off |
-| `setAllowlist721(c, entries, phase?)` / `setAllowlist1155(c, id, entries, phase?)` | 2 | root + phase onchain **+ preimage persist** (721) — byte-identical merkle to the platform |
+| `setAllowlist721(c, entries, phase?)` / `setAllowlist1155(c, id, entries, phase?)` |`feeTier` is always `1` (fixed 1% static pool fee since 2026-09-09)| root + phase onchain **+ preimage persist** (721) — byte-identical merkle to the platform |
 | `clearAllowlist721(c)` | 1 | root → 0 + preimage cleared |
 | `setBaseURI` / `setContractURI` | 1 | reveal, art replacement |
 | `setRoyalty(c, recipient, bps)` | 1 | |
 | `enableOpenEditionNumbering(c)` | 1 | "Name #1, #2…" via the registry slug endpoint |
 | `updateOpenEdition(c, { imageUri?, attributes?, description? })` | 0 | numbered-OE served metadata |
 | `ownerMint721(c, qty, to?)` / `ownerMint1155(c, id, qty, to?)` | 1 | airdrops |
-| `addEdition1155(c, { tokenId, maxSupply, … }, allEditionsMetadata)` | 2 | **new token on a LIVE 1155** — re-pins the FULL folder, setBaseURI, createEdition |
+| `addEdition1155(c, { tokenId, maxSupply, … }, allEditionsMetadata)` |`feeTier` is always `1` (fixed 1% static pool fee since 2026-09-09)| **new token on a LIVE 1155** — re-pins the FULL folder, setBaseURI, createEdition |
 | `createEdition1155(c, edition)` | 1 | tx only (folder must already cover the id) |
 | `setMaxSupply1155(c, id, newMax)` | 1 | shrink-only onchain |
 | `withdraw(c)` / `withdrawERC20(c, token)` | 1 | 5% platform cut applies in-contract |
@@ -216,7 +216,7 @@ cc0.company record: name, images, `seadrop_allowlist` preimage, socials) ·
 |---|---|---|
 | `sponsorshipStatus()` | 0 | `{ active, reason? }` — is gas sponsorship live on this chain? Probe FIRST. **Server-side/same-origin only** (no CORS): from a browser on a third-party origin it reads as inactive |
 | `launchTokenSponsored({ name, symbol, image, rewardRecipient, lpPreset?, pairedTokenAddress?, … })` | **0** | platform pays the gas (Base + Robinhood). No dev buy, daily cap → throws with the server message. Registers automatically. **Servers, scripts and agents only** — the endpoints send no CORS headers, so third-party BROWSER integrators must use `launchToken()` |
-| `launchToken({ name, symbol, image, feeTier, lpPreset?, pairedToken?, vault?, airdrop?, devBuyEth?, proceedsRecipient?, tokenAdmin?, … })` | 1 | self-paid fallback (and the only path on Ethereum / for dev buys). Registers automatically. `feeTier: 1 \| 2 \| 3 \| 6.9`. `lpPreset` defaults `'degen'` (1.12.0+). Born-renounced: `tokenAdmin` defaults `address(0)`. `creatorRewards` slices are FEES ONLY — vault/airdrop admin + dev-buy proceeds go to the launching account or `proceedsRecipient` |
+| `launchToken({ name, symbol, image, feeTier, lpPreset?, pairedToken?, vault?, airdrop?, devBuyEth?, proceedsRecipient?, tokenAdmin?, … })` | 1 | self-paid fallback (and the only path on Ethereum / for dev buys). Registers automatically. `feeTier` is always `1` (fixed 1% static pool fee since 2026-09-09)\| 2 \| 3 \| 6.9`. `lpPreset` defaults `'degen'` (1.12.0+). Born-renounced: `tokenAdmin` defaults `address(0)`. `creatorRewards` slices are FEES ONLY — vault/airdrop admin + dev-buy proceeds go to the launching account or `proceedsRecipient` |
 | `pinImage(bytes \| url)` | 0 | → `{ cid, ipfsUri, gatewayUrl }` |
 | `getProtocolAddresses()` | 0 | live staking/treasury/admin from the factory |
 | `registerLaunch(params)` | 0 | manual re-record (auto on both launch paths). 1.12.0+ accepts `airdropMerkleRoot` / `airdropEntriesCid` / `airdropEntriesJson` / `airdropExtension` — pass them on manual `prepareLaunchTransaction` flows or the platform can't serve airdrop proofs |
