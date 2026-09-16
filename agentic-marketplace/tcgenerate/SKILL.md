@@ -37,10 +37,10 @@ yourself, and get no gallery attribution. The re-brokered endpoint costs a flat
 
 | Slug | What it does | Price (you pay) | Category | Input |
 |---|---|---|---|---|
-| `tcgenerate-random` | Generate a fully autofilled random collectible card (name, subject, action, background, art style) | **1.005 USDC** | image | none |
+| `tcgenerate-random` | Generate a fully autofilled random collectible card (name, subject, action, background, art style) | **1.05 USDC** | image | none |
 
 Price = TCGenerate's upstream price + the flat **$0.005** cc0.company platform
-fee (1.00 + 0.005 = 1.005). Never hard-code it — read `maxAmountRequired` from
+fee (1.00 + max(5%, 0.005) = 1.05). Never hard-code it — read `maxAmountRequired` from
 the live 402 challenge.
 
 > **Heads-up on cost.** This is a **dollar-scale** call, not a cents-scale one
@@ -112,7 +112,7 @@ The card also appears in the model's public runs gallery:
 ## Worked example
 
 ```bash
-# Probe → 402 advertising 1.005 USDC; sign; retry:
+# Probe → 402 advertising 1.05 USDC; sign; retry:
 curl -X POST https://cc0.company/api/store/agent-services/tcgenerate-random/invoke \
   -H "Content-Type: application/json" \
   -H "PAYMENT-SIGNATURE: <base64-signed-payload>" \

@@ -82,7 +82,7 @@ const { tokenAddress, txHash, registered } = await b20.launchB20({
                             //   total: the factory mints exactly this and seeds the pool
                             //   with it. Omit ⇒ 100B default. Bounds: [1, 1e18] whole.
 
-  feeTier: 1,               // 1 | 2 | 3 | 6.9 (%) static — or feeMode: 'dynamic' (1%→3%)
+  feeTier: 1,               // ALWAYS 1 — fixed 1% static pool fee on every launch since 2026-09-09 (no tiers, no dynamic mode)
   lpPreset: 'degen',        // ← REQUIRED by this skill on every launch
   // adminMode omitted      // ← stays 'trustless' (the default). Never pass 'managed'.
 });

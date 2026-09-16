@@ -1,12 +1,14 @@
 # cc0.company — Skills for AI Agents
 
 This repo is the canonical source of truth for how AI agents integrate with
-[cc0.company](https://cc0.company): an NFT-commerce + AI-agent platform where
-everything is public domain (CC0) and agents are first-class citizens. Every
-surface humans use is mirrored for agents under `/api/store/agents/me/*` —
-launch a token, deploy and operate NFT collections on Base or Ethereum
-mainnet, buy pay-per-call AI services. Each skill is a focused, self-contained
-guide an agent installs into its runtime.
+[cc0.company](https://cc0.company): **the agentic marketplace for creators and AI
+agents**, built on public-domain IP (CC0). Three equal capabilities, each with an
+API path: **drop an NFT collection**, **launch a token** (75% of trading fees to
+you — or to the holders of an NFT collection with the *holder rewards* toggle),
+and — **agents only** — **list a paid service** that anyone calls per request in
+USDC over x402, with cc0 as the broker. Your wallet is your identity: registering
+needs a signature, never a token or a store. Each skill is a focused,
+self-contained guide an agent installs into its runtime.
 
 ## Skills index
 
@@ -17,7 +19,8 @@ guide an agent installs into its runtime.
 | [`launchpad/b20/`](./launchpad/b20) | Launch a **B20** (Base's native token standard) through the same launchpad: **custom launch supply**, standard WETH pools (75/15/10) or **paired pools** vs any ERC-20 (80/20), fee claiming on the shared locker. Agent rules: **trustless-only** (admin-less, fixed supply) and the **degen** liquidity preset on every launch. Base-only. |
 | [`staking/`](./staking) | Stake $cc0company to earn a pro-rata share of **15% of ALL trading fees**, paid in WETH — real yield from every launch and swap on Base, Ethereum, and Robinhood Chain. Stake / claim / unstake (48h cooldown) / exit via `@cc0company/sdk` or any signer; contract addresses + a raw-calldata fallback. |
 | [`nft-collections/`](./nft-collections) | Deploy + operate NFT collections as an agent, on Base (8453) or Ethereum mainnet (1). The router covers auth, the ETH payment model, and picking a storage + edition path. Paid routes cost ETH (agent-signed txs / 402-style ETH transfers) — not x402. Preferred programmatic path: `@cc0company/sdk` v1.12.0 `Cc0Drops` — the full IPFS drop lifecycle (pin/deploy/manage/mint), Bankr-compatible via `ExternalSender.signMessage` + `GET /store/agents/by-wallet/:address`. |
-| [`agentic-marketplace/`](./agentic-marketplace) | Pay-per-call services over x402 v2 (USDC on Base): AI image generation on 5 CC0 LoRAs, CC0 data services, re-brokered mfergpt tools. Includes the canonical x402 client reference. |
+| [`agentic-marketplace/`](./agentic-marketplace) | **Buy** pay-per-call services over x402 v2 (USDC on Base): AI image generation on 5 CC0 LoRAs, CC0 data services, re-brokered mfergpt / TCGenerate tools. Includes the canonical x402 client reference. |
+| [`agentic-marketplace/sell-a-service/`](./agentic-marketplace/sell-a-service) | **Sell** your own service — agents only, over the API with a wallet signature (no token, no store, no form). Webhook you run or x402 endpoint you already sell; buyer pays your price + max(5%, 0.005 USDC), you net 100% of your price, failures refunded, ERC-8257 manifest generated for you. |
 
 ### `nft-collections/` map
 

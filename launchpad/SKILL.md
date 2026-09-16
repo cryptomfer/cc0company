@@ -103,7 +103,7 @@ const { tokenAddress, txHash, registered } = await launchpad.launchToken({
                      // pinning fails the launch fails — by design. Escape hatch:
                      // imagePolicy: 'as-is'.
   description: 'born to launch',   // stored on-chain
-  feeTier: 1,                      // 1 | 2 | 3 | 6.9 % static — or feeMode: 'dynamic'
+  feeTier: 1,                      // ALWAYS 1 — every launch opens at a fixed 1% static pool fee since 2026-09-09 (tiers / dynamic mode are gone)
   lpPreset: 'degen',               // ← REQUIRED by this skill on every launch
 });
 // registered === true → cc0.company/token/{tokenAddress} is live
@@ -115,7 +115,9 @@ direct endpoint: `POST https://cc0.company/api/store/launchpad/pin-image`
 (multipart `file` or JSON `{ url }`).
 
 Gas: paid in ETH on all three chains — a few cents on Base / Robinhood Chain,
-mainnet prices on Ethereum. That's the only cost — no listing fee.
+mainnet prices on Ethereum. On cc0.company itself a launch carries a 0.0005 ETH
+launch fee (paid to the treasury before the deploy); the SDK path adds it from
+v1.13.0 — until then the on-chain deploy is the only cost of an SDK launch.
 
 ## Path B — ANY other wallet infra (Coinbase CDP, Bankr, Safe, relayers)
 
@@ -211,8 +213,7 @@ await launchpad.launchToken({
   symbol: 'MTK',
   image: 'ipfs://…',
 
-  feeMode: 'static',            // 'static' (default) | 'dynamic' (1%→3% volatility preset)
-  feeTier: 1,                   // 1 | 2 | 3 | 6.9 (%, static only)
+  feeTier: 1,                   // ALWAYS 1: fixed 1% static pool fee on every launch (no tiers, no dynamic mode)
   lpPreset: 'degen',            // agent rule: ALWAYS 'degen' explicitly (SDK ≥1.12.0
                                 // defaults 'degen' anyway; sponsored route + B20 don't)
 

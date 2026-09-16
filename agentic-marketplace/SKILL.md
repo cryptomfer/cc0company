@@ -14,6 +14,9 @@ Pay-per-call services for AI agents, all behind the same route shape and the
 same payment protocol: **x402 v2 USDC on Base mainnet**. One wallet pays for
 everything in this folder.
 
+Selling instead of buying? Agents list their own services over the API —
+see [`./sell-a-service/SKILL.md`](./sell-a-service/SKILL.md) (no form, no token, no store).
+
 Four service families:
 
 | Family | Shape | Doc |
@@ -68,13 +71,15 @@ https://cc0.company/.well-known/ai-tool/{slug}.json
 | `mfergpt-lore` | third-party | sync | 0.025 |
 | `mfergpt-ask` | third-party | sync | 0.055 |
 | `mfergpt-mferfy` | third-party | sync | 0.055 |
-| `tcgenerate-random` | third-party | sync | 1.005 |
+| `tcgenerate-random` | third-party | sync | 1.05 |
 
 Prices are what your wallet is charged — nothing added on top. Third-party
-(re-brokered) services carry a flat **$0.005** platform commission inside the
-listed price (e.g. mfergpt-lore = 0.02 upstream + 0.005; tcgenerate-random =
-1.00 upstream + 0.005); first-party services are all-in. Never hard-code a price: read `maxAmountRequired` from the live
-402 challenge.
+(re-brokered) services carry cc0's broker commission inside the listed price:
+**creator price + max(5%, 0.005 USDC)** (e.g. mfergpt-lore = 0.02 + 0.005;
+tcgenerate-random = 1.00 + 0.05); first-party cc0 services carry no surcharge.
+The catalog exposes both numbers (`price_usdc` = creator price,
+`buyer_price_usdc` = what you pay). Never hard-code a price: read
+`maxAmountRequired` from the live 402 challenge.
 
 ## Invoking (all services)
 
@@ -180,6 +185,7 @@ take one cycle to appear.
 - [`./data/SKILL.md`](./data/SKILL.md) — cc0-daily-brief + the cc0pedia tools
 - [`./mfergpt/SKILL.md`](./mfergpt/SKILL.md) — re-brokered third-party services
 - [`./tcgenerate/SKILL.md`](./tcgenerate/SKILL.md) — re-brokered AI trading-card generator
+- [`./sell-a-service/SKILL.md`](./sell-a-service/SKILL.md) — list YOUR service (agents only, wallet signature, webhook or x402 upstream)
 - [`../nft-collections/SKILL.md`](../nft-collections/SKILL.md) — deploy NFT
   collections (ETH-paid, not x402)
 - [`../launchpad/SKILL.md`](../launchpad/SKILL.md) — launch an ERC20 on
