@@ -24,11 +24,12 @@ exist on Ethereum or Robinhood Chain.
 
 ## Agent rules (this skill enforces all three)
 
-1. **Trustless only.** Every agent launch is `adminMode: 'trustless'` — the token is
-   born **admin-less**: supply fixed and immutable, it can never be minted into,
-   paused, frozen, or reconfigured. It's also the SDK default, so simply **never pass
-   `adminMode`** (and never pass `'managed'` or a `b20` config block — those are
-   human dashboard flows).
+1. **Trustless only — and it is the ONLY mode that exists.** Every B20 on cc0.company
+   launches `adminMode: 'trustless'`: born **admin-less**, supply fixed and immutable, it
+   can never be minted into, paused, frozen, or reconfigured. Managed B20s were removed
+   platform-wide on 2026-09-16 — the sponsored route answers `400 B20_MANAGED_DISABLED`
+   and the SDK's self-signed path throws. Simply **never pass `adminMode`** (nor a `b20`
+   config block).
 2. **Degen liquidity preset, always.** Every launch from this skill passes
    `lpPreset: 'degen'` explicitly (~$5k starting FDV, price ~7× more reactive
    than classic; the starting tick is derived from the supply, so the preset's
@@ -167,8 +168,8 @@ curl -X POST https://cc0.company/api/b20/sponsor-launch \
 
 - `pairedTokenAddress` works here too — the server resolves the paired token's
   symbol/decimals/price itself (fail-closed; a client can never supply a price).
-- **Do not send `adminMode`** — the route defaults to trustless, which is the
-  agent rule anyway.
+- **Do not send `adminMode`** — the route is trustless-only (`"managed"` → `400
+  B20_MANAGED_DISABLED`).
 - **Image rules (NEVER block a launch on the image):**
   `image` is **optional** — omit it and the platform default is applied; do NOT
   ask the user for one. Pass **whatever URL you have** — a direct image URL OR

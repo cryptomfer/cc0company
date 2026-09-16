@@ -235,7 +235,7 @@ FDV and lets one buy drain the pool.
 |---|---|---|
 | `sponsorshipStatus()` | 0 | probe first (server-side only — no CORS, same as above) |
 | `launchB20Sponsored({ name, symbol, image, supply?, rewardRecipient, lpPreset?, pairedTokenAddress?, … })` | **0** | platform pays the gas; trustless by default server-side |
-| `launchB20({ name, symbol, image, supply?, feeTier, lpPreset?, pairedToken?, adminMode?, b20?, … })` | 1+ | self-paid fallback; `adminMode: 'managed'` applies the b20 config post-launch. `lpPreset` still defaults `'classic'` here — pass `'degen'` explicitly. Every launch auto-mines a vanity salt so the token address ends in `…cc0` (never blocks — falls back to a random salt) |
+| `launchB20({ name, symbol, image, supply?, feeTier, lpPreset?, pairedToken?, adminMode?, b20?, … })` | 1+ | self-paid fallback; trustless only — `adminMode: 'managed'` / a `b20` config block are refused since 2026-09-16 (every B20 is admin-less + immutable). `lpPreset` still defaults `'classic'` here — pass `'degen'` explicitly. Every launch auto-mines a vanity salt so the token address ends in `…cc0` (never blocks — falls back to a random salt) |
 
 **`Cc0Fees`** — `getClaimableFees(creator, token)` → `{ weth, token, paired? }` (paired asset auto-detected for paired launches, v1.11.1+) ·
 `claimFees(creator, token)` claims every non-zero asset incl. the paired one (permissionless; chain of the launch).
