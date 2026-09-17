@@ -1,6 +1,6 @@
 # @cc0company/sdk — the programmatic path to cc0.company
 
-**v1.12.0** · npm: [`@cc0company/sdk`](https://www.npmjs.com/package/@cc0company/sdk) · repo: [cryptomfer/cc0company-sdk](https://github.com/cryptomfer/cc0company-sdk) · license CC0-1.0
+**v1.14.0** · npm: [`@cc0company/sdk`](https://www.npmjs.com/package/@cc0company/sdk) · repo: [cryptomfer/cc0company-sdk](https://github.com/cryptomfer/cc0company-sdk) · license CC0-1.0
 
 One TypeScript SDK, five clients, one peer dependency ([viem](https://viem.sh)).
 Prefer it over hand-rolling HTTP + ABI calls — it encodes the exact constructor
@@ -10,6 +10,14 @@ orders, merkle tree, auth messages and registry contracts the platform uses.
 npm install @cc0company/sdk viem
 ```
 
+> **What changed in 1.14.0** — **Arc (5042)** support: `chain: 'arc'` on
+> `Cc0Launchpad` / `Cc0Fees`; `arcChain`, `standardPairFor()`,
+> `startingTickForStablePair()`, `fetchEthUsd()` exports; every address book
+> carries `PAIR_SYMBOL` / `PAIR_DECIMALS` (WETH 18 — USDC 6 on Arc). On Arc the
+> SDK places the starting tick at the live ETH/USD (fail-closed, `quoteEthUsd`
+> override), refuses `devBuyEth`, and paired launches stay fail-closed.
+> 1.13.0 fixed the pool fee at 1% static on every launch.
+>
 > **What changed in 1.12.0** (pin ≥ 1.12.0 — 1.11.x has a fund-locking bug):
 > - **Born-renounced by default**: `launchToken`'s `tokenAdmin` now defaults to
 >   `address(0)` — scanners (GoPlus, DexScreener) read "ownership renounced",
@@ -33,9 +41,9 @@ npm install @cc0company/sdk viem
 | Client | Does | Deep docs |
 |---|---|---|
 | `Cc0Drops` | **IPFS NFT drops** (CC0Drop ERC721-C + CC0Drop1155): pin art/metadata, deploy in 1 sig, record on cc0.company, full dashboard-parity management, new editions on a live 1155, mint | [`nft-collections/`](../nft-collections) (raw-API equivalents + concepts) |
-| `Cc0Launchpad` | Launch an ERC20 on Base / Ethereum / Robinhood Chain with the on-chain-enforced **75/15/10** fee split — or **paired** pools vs any ERC-20 (**80/20**, Base + Robinhood, incl. RH tokenized stocks). Self-paid (`launchToken`) or **gas-sponsored** (`launchTokenSponsored`, zero ETH, Base + Robinhood — servers/scripts/agents only, no CORS) | [`launchpad/`](../launchpad) |
+| `Cc0Launchpad` | Launch an ERC20 on Base / Ethereum / Robinhood Chain / Arc (USDC-quoted pools, USDC gas) with the on-chain-enforced **75/15/10** fee split — or **paired** pools vs any ERC-20 (**80/20**, Base + Robinhood, incl. RH tokenized stocks). Self-paid (`launchToken`) or **gas-sponsored** (`launchTokenSponsored`, zero ETH, Base + Robinhood — servers/scripts/agents only, no CORS) | [`launchpad/`](../launchpad) |
 | `Cc0B20Launchpad` | Launch a **B20** (Base-native standard, Base-only): `launchB20()` / **`launchB20Sponsored()`** with custom launch supply, WETH (75/15/10) or **paired** pools (80/20), trustless or managed admin | [`launchpad/b20/`](../launchpad/b20) |
-| `Cc0Fees` | Read + claim your creator trading fees — WETH + token, and the PAIRED pool asset on paired launches (auto-detected, v1.11.1+) | [`launchpad/`](../launchpad) |
+| `Cc0Fees` | Read + claim your creator trading fees — WETH + token (USDC + token on Arc), and the PAIRED pool asset on paired launches (auto-detected, v1.11.1+) | [`launchpad/`](../launchpad) |
 | `Cc0Staking` | Stake $cc0company (Base), earn WETH from every launch | [`staking/`](../staking) |
 
 Generative fully-onchain collections (SSTORE2 layers) are NOT in the SDK — see
@@ -210,7 +218,7 @@ cc0.company record: name, images, `seadrop_allowlist` preimage, socials) ·
 
 ## Launchpad · B20 · Fees · Staking — method reference
 
-**`Cc0Launchpad`** (ERC-20, chains: base default | ethereum | robinhood)
+**`Cc0Launchpad`** (ERC-20, chains: base default | ethereum | robinhood | arc)
 
 | Method | Sigs | Notes |
 |---|---|---|
@@ -268,8 +276,9 @@ Raw-API equivalent (no SDK): [`nft-collections/examples/e2e-cc0drop.mjs`](../nft
 
 ## Chains & conventions
 
-- `chain: 'base'` (default) `| 'ethereum'` for drops; `'robinhood'` is
-  launchpad-only (drops throw at construction).
+- `chain: 'base'` (default) `| 'ethereum'` for drops; `'robinhood'` and `'arc'`
+  are launchpad-only (drops throw at construction). Arc: gas is USDC, pools are
+  quoted in USDC, `standardPairFor('arc')` → USDC 6 dec.
 - Custom RPC: pass your own `walletClient` / `publicClient` — there is no
   `rpcUrl` field.
 - All amounts are native `bigint`; HTTP mirrors (`tx.json`) are hex strings.

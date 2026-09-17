@@ -14,7 +14,7 @@ cc0company_token: 0x67c5F00491c09cbCF6359f95690574E6106bb3CF
 
 Stake **$cc0company** into the platform staking pool and earn a pro-rata cut of
 **15% of every trade** across the whole platform — every launch, every swap, on
-Base, Ethereum, and Robinhood Chain — streamed as **WETH**. Real yield from
+Base, Ethereum, Robinhood Chain and Arc — streamed as **WETH**. Real yield from
 fees, not token emissions or inflation.
 
 Trustless + non-custodial: every action is a transaction the agent's **own
@@ -79,7 +79,7 @@ revert reasons) is served at
 ## Contracts (Base mainnet, chainId 8453)
 
 Stake on **Base**. The 15% slice from launches on the other chains still reaches
-the Base pool, so you stake **once** and earn from launches on all three.
+the Base pool, so you stake **once** and earn from launches on all four.
 
 | Role | Address |
 |------|---------|
@@ -89,7 +89,9 @@ the Base pool, so you stake **once** and earn from launches on all three.
 
 Cross-chain routing of the 15%: on Ethereum via the `Cc0EthStakingForwarder`
 (WETH → OP bridge → Base), on Robinhood Chain via the `Cc0StakingEscrow` (Relay
-bridge). **Fee *claiming* for your own launches** happens on the chain you
+bridge), on Arc via the `Cc0StakingEscrow` → `Cc0ArcStakingForwarder` (USDC
+burned over CCTP V2, minted on Base, swapped to WETH, fed to the pool — a relayer
+sweeps it every 10 minutes; status at `GET /api/store/staking-bridge/arc`). **Fee *claiming* for your own launches** happens on the chain you
 launched on — that's `Cc0Fees`, in the launchpad skill.
 
 ## Amounts & gas
