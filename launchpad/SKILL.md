@@ -1,7 +1,7 @@
 ---
 name: cc0company-launchpad
 version: 2.2.0
-description: Launch your own token on the cc0.company launchpad (Base · Ethereum · Robinhood Chain · Arc, Uniswap V4) as an AI agent — one transaction, instant liquidity, 75% of all trading fees back to you forever, enforced on-chain (paired launches 80/20, Base + Robinhood, incl. Robinhood tokenized stocks; on Arc pools and fees are in USDC). Wallet flows for viem / private key / CDP, an HTTP-only sender flow for Bankr-style wallets, and fee claiming. B20 launches (Base's native token standard, custom supply, paired pools) are the b20/ sub-skill; $cc0company staking is the cc0company-staking skill.
+description: Launch your own token on the cc0.company launchpad (Base · Ethereum · Robinhood Chain · Arc, Uniswap V4) as an AI agent — one transaction, instant liquidity, 75% of all trading fees back to you forever, enforced on-chain (paired launches 80/20 on Base, Robinhood and Arc, incl. Robinhood tokenized stocks; on Arc pools and fees are in USDC). Wallet flows for viem / private key / CDP, an HTTP-only sender flow for Bankr-style wallets, and fee claiming. B20 launches (Base's native token standard, custom supply, paired pools) are the b20/ sub-skill; $cc0company staking is the cc0company-staking skill.
 homepage: https://cc0.company
 api_base: https://cc0.company/api
 sdk: "@cc0company/sdk (v1.14.0+ for Arc; v1.12.0+ otherwise)"
@@ -9,7 +9,7 @@ chains: base (8453) | ethereum (1) | robinhood (4663) | arc (5042)
 factory_base: 0xf9007657b627c5421d6eBD5D71F86CDfCdc7dA8D
 factory_ethereum: 0x70baFfe8783396142385Ece53f2cDF8D1cf9872C
 factory_robinhood: 0x79F331d3d7977062d5c78Ad122851fC57Ee3DC1a
-factory_arc: 0x79F331d3d7977062d5c78Ad122851fC57Ee3DC1a
+factory_arc: 0x79F331d3d7977062d5c78Ad122851fC57Ee3DC1a # dual-mode — standard USDC pairs AND custom pairs (80/20) on the same factory
 paired_factory_base: 0x6097FD2e8773cA8ED342aA8d9a999e05397e2705
 paired_factory_robinhood: 0x65D667870E7B5b4b7113e5BaB255efE052cf3B36
 cc0company_token: 0x67c5F00491c09cbCF6359f95690574E6106bb3CF # lives on Base; staking happens there
@@ -27,9 +27,10 @@ button) goes live automatically.
 > with USDC on Arc — there is no ETH there), every pool is **quoted in USDC**
 > instead of WETH, and your 75% creator fees accrue in **USDC + your token**.
 > Same factory logic, same enforced 75/15/10 (the 15% staker slice crosses to
-> Base over CCTP and is paid to stakers as WETH). Differences: **no dev buy**
-> (the extension wraps ETH — Arc has no WETH), **no paired launches yet**
-> (fail-closed), and the pool's starting tick is placed at the live ETH/USD so
+> Base over CCTP and is paid to stakers as WETH). **Custom pairs work** (SDK ≥
+> 1.14.1): pair with any Arc ERC-20 for the 80/20 split — the one Arc factory is
+> dual-mode. Differences: **no dev buy** (the extension wraps ETH — Arc has no
+> WETH), and the pool's starting tick is placed at the live ETH/USD so
 > the degen preset's ~$3-5k starting FDV holds in dollars — the SDK does this
 > for you (`quoteEthUsd` to override). Send transactions through the official
 > RPC `https://rpc.mainnet.arc.io` only, one at a time. SDK ≥ 1.14.0.
@@ -468,7 +469,7 @@ The SDK picks the right addresses from your `chain` automatically
 | Contract | Base (8453) | Ethereum (1) | Robinhood Chain (4663) | Arc (5042) |
 |----------|-------------|--------------|------------------------|------------|
 | Factory (validates the split) | `0xf9007657b627c5421d6eBD5D71F86CDfCdc7dA8D` | `0x70baFfe8783396142385Ece53f2cDF8D1cf9872C` | `0x79F331d3d7977062d5c78Ad122851fC57Ee3DC1a` | `0x79F331d3d7977062d5c78Ad122851fC57Ee3DC1a` |
-| Paired factory (80/20, dual-mode) | `0x6097FD2e8773cA8ED342aA8d9a999e05397e2705` | — (not deployed) | `0x65D667870E7B5b4b7113e5BaB255efE052cf3B36` | — (not yet) |
+| Paired factory (80/20, dual-mode) | `0x6097FD2e8773cA8ED342aA8d9a999e05397e2705` | — (not deployed) | `0x65D667870E7B5b4b7113e5BaB255efE052cf3B36` | same factory (dual-mode) |
 | Fee locker (claim here) | `0xC04bdF721FA5CEc839819864FA86F3D48B89Fcee` | `0x0De94068195C5d85e31406804357F44E0D20E255` | `0x343d77D94A119D5cEA495aeE8336A3a7Aa5CD385` | `0x343d77D94A119D5cEA495aeE8336A3a7Aa5CD385` |
 | Staking recipient (the 15%) | `0x38cE743b88c54eD1aF84816Ff596E518d16DFF95` | `0xF84D22728E7f4DdD56Fd3BE7Cb30148e727A8a1a` | `0xE4542b52Ed212bDcFb10f3C9F8A12f2cEeeF35b2` | `0xE4542b52Ed212bDcFb10f3C9F8A12f2cEeeF35b2` (escrow → CCTP forwarder `0x51be22E53639216d30c61ac876A67f663280370D`) |
 | Standard pair (pool quote asset) | WETH `0x4200000000000000000000000000000000000006` | WETH `0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2` | WETH `0x0Bd7D308f8E1639FAb988df18A8011f41EAcAD73` | **USDC** `0x3600000000000000000000000000000000000000` (6 dec) |

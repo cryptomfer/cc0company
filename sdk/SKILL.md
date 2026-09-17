@@ -1,6 +1,6 @@
 # @cc0company/sdk — the programmatic path to cc0.company
 
-**v1.14.0** · npm: [`@cc0company/sdk`](https://www.npmjs.com/package/@cc0company/sdk) · repo: [cryptomfer/cc0company-sdk](https://github.com/cryptomfer/cc0company-sdk) · license CC0-1.0
+**v1.14.1** · npm: [`@cc0company/sdk`](https://www.npmjs.com/package/@cc0company/sdk) · repo: [cryptomfer/cc0company-sdk](https://github.com/cryptomfer/cc0company-sdk) · license CC0-1.0
 
 One TypeScript SDK, five clients, one peer dependency ([viem](https://viem.sh)).
 Prefer it over hand-rolling HTTP + ABI calls — it encodes the exact constructor
@@ -15,7 +15,8 @@ npm install @cc0company/sdk viem
 > `startingTickForStablePair()`, `fetchEthUsd()` exports; every address book
 > carries `PAIR_SYMBOL` / `PAIR_DECIMALS` (WETH 18 — USDC 6 on Arc). On Arc the
 > SDK places the starting tick at the live ETH/USD (fail-closed, `quoteEthUsd`
-> override), refuses `devBuyEth`, and paired launches stay fail-closed.
+> override), refuses `devBuyEth`; 1.14.1 opens paired (80/20) launches on Arc — the one Arc
+> factory is dual-mode, so `pairedToken` works there.
 > 1.13.0 fixed the pool fee at 1% static on every launch.
 >
 > **What changed in 1.12.0** (pin ≥ 1.12.0 — 1.11.x has a fund-locking bug):
