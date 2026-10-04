@@ -384,7 +384,7 @@ const BASEPAINT_ABI = parseAbi([
   and OpenSea listings on Ethereum 1/1s are a different flow (the site's
   « Offers » panel).
 - Not creation: minting your own 1/1 and opening its lot is the **cc0
-  Artifacts** flow in [`cc0.company/skill.md` § 1/1 Artworks](https://cc0.company/skill.md)
+  Artifacts** flow in [`./create/SKILL.md`](./create/SKILL.md)
   (one signature, cc0's wallet stores the piece onchain).
 - Never send more than the quoted wei + 0.5 %: on `collectPatronEdition` the
   whole `value` is the purchase (no refund of a surplus). On **Transient** and

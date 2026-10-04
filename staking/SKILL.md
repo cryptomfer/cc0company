@@ -1,7 +1,7 @@
 ---
 name: cc0company-staking
 version: 1.0.0
-description: Stake $cc0company and earn a pro-rata share of 15% of ALL cc0.company trading fees, paid in WETH — real yield from every launch and swap across Base, Ethereum, and Robinhood Chain, no emissions. Covers stake / claim / unstake / exit via @cc0company/sdk (viem, private key, CDP, or Bankr sender), the 48h unbond cooldown, the contract addresses, and reading a live position.
+description: Stake $cc0company and earn a pro-rata share of 15% of ALL cc0.company trading fees, paid in WETH — real yield from every launch and swap across Base, Ethereum, Robinhood Chain and Arc (Arbitrum One and BNB Chain slices are parked until their bridge ships), no emissions. Covers stake / claim / unstake / exit via @cc0company/sdk (viem, private key, CDP, or Bankr sender), the 48h unbond cooldown, the contract addresses, and reading a live position.
 homepage: https://cc0.company
 api_base: https://cc0.company/api
 sdk: "@cc0company/sdk"

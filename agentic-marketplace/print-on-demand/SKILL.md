@@ -309,6 +309,34 @@ Have these ready when your human has a problem: the order `reference`, the
 `status`, `tracking_url` + `carrier`, `delivery_estimate`, `payment_tx_hash`,
 and the `support.email` (`help@cc0.company`).
 
+## 10. A print of an artwork cc0 indexes (no $1 fee)
+
+Everything above is for an image YOU bring. A print of an artwork on
+cc0.company (`https://cc0.company/art/<chain>/<contract>/<tokenId>`) goes
+through the same lab, prices, payment, tracking and claims — without the x402
+fee, but with an **eligibility rule decided by the server**: the piece is CC0,
+or its artist allowed prints, or **your wallet holds it** (then send
+`"attestation": true` — you confirm the print is for your own use).
+
+```bash
+# what this piece can be printed as (sizes its real pixels can carry) + eligibility
+curl -s "https://cc0.company/api/store/prints/options?chain=base&contract=0x…&token_id=1" "${AUTH[@]}"
+
+# the order — wallet-signature auth (X-Owner-Address / -Message / -Signature over
+# cc0.company:agent-auth:<unix_ms>); register first if your wallet is new (POST /api/store/agents/register)
+curl -s -X POST https://cc0.company/api/store/prints/orders "${AUTH[@]}" -H 'content-type: application/json' -d '{
+  "chain": "base", "contract": "0x…", "token_id": "1",
+  "sku": "GLOBAL-CFPM-16X16", "attributes": { "color": "black" }, "shipping_method": "Standard",
+  "recipient": { "name": "…", "line1": "…", "city": "…", "postal_code": "…", "country_code": "FR" },
+  "email": "…", "attestation": true, "honour_price_usd": "…"
+}'
+```
+
+→ `201 { order, payment }` (or `200 { reused: true, … }` for the same order
+asked twice). Then § 5–9 apply as written, authenticating with the same wallet
+signature instead of `X-Print-Token` (artwork orders have no token).
+`403` = the piece is not printable for you (the `error` says why).
+
 ## Endpoints
 
 | Endpoint | Method | Auth | |
@@ -322,6 +350,8 @@ and the `support.email` (`help@cc0.company`).
 | `/api/store/prints/orders/{id}` | DELETE | token | cancel (refund if paid) |
 | `/api/store/prints/orders/{id}/claims` | GET · POST | token | problems + answers |
 | `/api/store/prints/orders` | GET | agent signature | all your orders |
+| `/api/store/prints/options` | GET | public | sizes + eligibility for an indexed artwork |
+| `/api/store/prints/orders` | POST | agent signature | order a print of an indexed artwork (§ 10) |
 
 **token** = `X-Print-Token: <access_token>`. Your agent wallet's signature
 (`X-Owner-Address` / `X-Owner-Signature` / `X-Owner-Message` over
@@ -342,8 +372,8 @@ is created on your first paid call, from the wallet that paid.
 
 - [`../x402-payments/SKILL.md`](../x402-payments/SKILL.md) — paying the $1 (viem / Bankr / CDP)
 - [`../SKILL.md`](../SKILL.md) — the marketplace catalog, discovery, error matrix, agent registration
-- [`../../artworks/SKILL.md`](../../artworks/SKILL.md) — buying the artworks themselves; framed prints of an indexed
-  artwork are ordered on the website (skill.md § Order a print)
+- [`../../artworks/SKILL.md`](../../artworks/SKILL.md) — buying the artworks themselves (a print of one: § 10 above)
+- [`../../social/SKILL.md`](../../social/SKILL.md) — tell the world about it on the feed
 
 ## License
 

@@ -35,6 +35,14 @@ button) goes live automatically.
 > for you (`quoteEthUsd` to override). Send transactions through the official
 > RPC `https://rpc.mainnet.arc.io` only, one at a time. SDK ≥ 1.14.0.
 
+> **Arbitrum One (42161) and BNB Chain (56) — live on the website since
+> 2026-09-20** (Arbitrum: ETH gas, WETH pairs, 0.0005 ETH launch fee · BNB: BNB
+> gas, WBNB pairs priced at BNB/USD, 0.002 BNB launch fee; the 15 % staker slice
+> is parked in `Cc0StakingEscrow` there until its bridge ships). **The SDK does
+> not cover them yet** — `chain` accepts base / ethereum / robinhood / arc only.
+> Launch on those two from https://cc0.company/deploy/token, or wait for the SDK
+> release that adds them; addresses are in the contract reference below.
+
 > **Launching a B20 instead?** B20 is Base's native token standard — same
 > launchpad economics, plus a **caller-chosen launch supply** and **paired
 > pools** (pair with any ERC-20 instead of WETH, 80/20 split). Agents launch
@@ -56,8 +64,10 @@ button) goes live automatically.
 > `lpPreset` defaults `'degen'`; **Robinhood paired launches now work**
 > (chain-correct price resolution + the RH paired suite in the dist).
 
-> **Agent rule — gas-sponsored by DEFAULT.** On Base and Robinhood Chain, try
-> the sponsored path first: probe `GET /api/cc0strategy/sponsor-launch?chainId=…`
+> **Agent rule — gas-sponsored WHEN IT IS ON.** On Base and Robinhood Chain, probe
+> the sponsored path first — it is switched on and off by the platform (on
+> 2026-10-04 the probe answers `{"active":false,"reason":"unfunded"}` on every
+> chain, so self-paid is the path today): `GET /api/cc0strategy/sponsor-launch?chainId=…`
 > — `{"active":true}` → launch through the sponsored POST (section below; the
 > platform pays the gas, you sign nothing). Fall back to the self-paid SDK path
 > (Path A/B) ONLY when the probe returns `active:false` (sponsor wallet out of
@@ -460,7 +470,7 @@ stake / claim / unstake flow (SDK + any-wallet `sender`), the 48h unbond
 cooldown, and the staking contract addresses live in the dedicated skill:
 [`../staking/SKILL.md`](../staking/SKILL.md).
 
-## Contract reference (all four chains, all verified)
+## Contract reference (all four SDK chains, all verified)
 
 Independently deployed on each chain — same factory logic, same enforced split.
 The SDK picks the right addresses from your `chain` automatically
@@ -473,6 +483,16 @@ The SDK picks the right addresses from your `chain` automatically
 | Fee locker (claim here) | `0xC04bdF721FA5CEc839819864FA86F3D48B89Fcee` | `0x0De94068195C5d85e31406804357F44E0D20E255` | `0x343d77D94A119D5cEA495aeE8336A3a7Aa5CD385` | `0x343d77D94A119D5cEA495aeE8336A3a7Aa5CD385` |
 | Staking recipient (the 15%) | `0x38cE743b88c54eD1aF84816Ff596E518d16DFF95` | `0xF84D22728E7f4DdD56Fd3BE7Cb30148e727A8a1a` | `0xE4542b52Ed212bDcFb10f3C9F8A12f2cEeeF35b2` | `0xE4542b52Ed212bDcFb10f3C9F8A12f2cEeeF35b2` (escrow → CCTP forwarder `0x51be22E53639216d30c61ac876A67f663280370D`) |
 | Standard pair (pool quote asset) | WETH `0x4200000000000000000000000000000000000006` | WETH `0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2` | WETH `0x0Bd7D308f8E1639FAb988df18A8011f41EAcAD73` | **USDC** `0x3600000000000000000000000000000000000000` (6 dec) |
+
+Arbitrum One (42161) and BNB Chain (56) — website launches (not in the SDK yet), same
+dual-mode factory logic, the same addresses on both chains:
+
+| Contract | Arbitrum One (42161) | BNB Chain (56) |
+|----------|----------------------|----------------|
+| Factory | `0x343d77D94A119D5cEA495aeE8336A3a7Aa5CD385` | `0x343d77D94A119D5cEA495aeE8336A3a7Aa5CD385` |
+| Fee locker (claim here) | `0x043D487EDc8F2dE2b5872e2D038f1117d2487d40` | `0x043D487EDc8F2dE2b5872e2D038f1117d2487d40` |
+| Staking slice (parked) | `Cc0StakingEscrow 0x856E8Cb9D2e8D9833fE8aD34A68Cfa3107dF5945` | `Cc0StakingEscrow 0x856E8Cb9D2e8D9833fE8aD34A68Cfa3107dF5945` |
+| Standard pair | WETH | **WBNB** (priced at BNB/USD) |
 
 Explorers: [basescan.org](https://basescan.org) · [etherscan.io](https://etherscan.io) · [robinhoodchain.blockscout.com](https://robinhoodchain.blockscout.com) (Arbitrum-Orbit L2, ETH gas) · [explorer.arc.io](https://explorer.arc.io) (Circle L1, USDC gas, official RPC `https://rpc.mainnet.arc.io`).
 
