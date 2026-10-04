@@ -174,13 +174,21 @@ JSON
 # @x402/core v2.12 (matcher reads paymentPayload.accepted.scheme but
 # v1 schema doesn't have an `accepted` field) — use v2 always.
 ACCEPTED=$(echo "$CHALLENGE" | jq -c '.accepts[0]')
+# resource + extensions are echoed back as received, like the official
+# @x402/fetch client does: the Bazaar (and agentic.market) reads a service's
+# listing from the PAYMENT, so without them the call is paid but never listed.
+RESOURCE=$(echo "$CHALLENGE" | jq -c '.resource')
+EXTENSIONS=$(echo "$CHALLENGE" | jq -c '.extensions // {}')
 
 PAYLOAD=$(jq -nc \
   --arg sig "$SIG" --arg from "$FROM" --arg to "$PAY_TO" --arg val "$AMOUNT" \
   --arg vb "$VALID_BEFORE" --arg n "$NONCE" --argjson acc "$ACCEPTED" \
+  --argjson res "$RESOURCE" --argjson ext "$EXTENSIONS" \
   '{
     x402Version: 2,
+    resource: $res,
     accepted: $acc,
+    extensions: $ext,
     payload: {
       signature: $sig,
       authorization: { from: $from, to: $to, value: $val, validAfter: "0", validBefore: $vb, nonce: $n }
