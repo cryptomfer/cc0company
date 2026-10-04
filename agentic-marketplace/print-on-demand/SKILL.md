@@ -120,13 +120,26 @@ POST https://cc0.company/api/store/agent-services/cc0-print/invoke
 }
 ```
 
+Or, to print an NFT:
+
+```json
+{ "opensea_url": "https://opensea.io/item/ethereum/0x33fd426905f149f8376e227d0c9d3340aad17af1/3",
+  "sku": "GLOBAL-CFPM-16X16", "attributes": { "color": "black" }, "shipping_method": "Standard",
+  "recipient": { … }, "email": "jane@example.com", "rights_attestation": true }
+```
+
+We read the NFT's picture ourselves (its metadata, an animated GIF prints its
+first frame); a video or an interactive piece answers `422` — nothing charged.
+
 | Field | |
 |---|---|
-| `image_url` | required — as in step 2 |
+| `image_url` | the picture — as in step 2. **Or** name an NFT instead (exactly one of the three): |
+| `opensea_url` | any NFT by its OpenSea item link, e.g. `https://opensea.io/item/ethereum/0x33fd…7af1/3` |
+| `nft` | any NFT by address: `{ "chain": "ethereum", "contract": "0x…", "token_id": "3" }` — ethereum, base, arbitrum, bnb, arc, robinhood, shape |
 | `sku` | required — from the catalogue / the check |
 | `recipient` | required — `country_code` is ISO 3166-1 alpha-2 |
 | `email` | required — **your human's** email: receipt, every step, the tracking link and delivery go there |
-| `rights_attestation` | required, `true` — you have the right to reproduce this image (you made it, it is public domain, or you hold a licence). It is recorded on the order with your wallet. |
+| `rights_attestation` | required, `true` — the print is for your human's personal, non-commercial use and you have the right to have the picture reproduced (see the Prints section of https://cc0.company/terms#prints). Recorded on the order with your wallet. |
 | `attributes`, `copies` (1–25), `shipping_method` | optional — defaults: the product's first option, 1, `Budget` |
 | `callback_url` | optional — https webhook, see § 7 |
 | `agent_reference` | optional — your own id, echoed everywhere |
@@ -311,12 +324,14 @@ and the `support.email` (`help@cc0.company`).
 
 ## 10. A print of an artwork cc0 indexes (no $1 fee)
 
-Everything above is for an image YOU bring. A print of an artwork on
+Everything above goes through cc0-print (an image or an NFT you name). A print of an artwork on
 cc0.company (`https://cc0.company/art/<chain>/<contract>/<tokenId>`) goes
 through the same lab, prices, payment, tracking and claims — without the x402
-fee, but with an **eligibility rule decided by the server**: the piece is CC0,
-or its artist allowed prints, or **your wallet holds it** (then send
-`"attestation": true` — you confirm the print is for your own use).
+fee. **Any piece is printable**: a CC0 piece or one whose artist allowed prints
+needs nothing more; for every other piece send `"attestation": true` — the
+print is for personal, non-commercial use, under the Prints section of the
+Terms. (Through cc0-print you can also name an NFT directly — § 4, `opensea_url`
+or `nft`.)
 
 ```bash
 # what this piece can be printed as (sizes its real pixels can carry) + eligibility
@@ -335,7 +350,7 @@ curl -s -X POST https://cc0.company/api/store/prints/orders "${AUTH[@]}" -H 'con
 → `201 { order, payment }` (or `200 { reused: true, … }` for the same order
 asked twice). Then § 5–9 apply as written, authenticating with the same wallet
 signature instead of `X-Print-Token` (artwork orders have no token).
-`403` = the piece is not printable for you (the `error` says why).
+`400` with `requires_attestation: true` = send `"attestation": true`.
 
 ## Endpoints
 
