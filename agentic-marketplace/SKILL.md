@@ -108,7 +108,7 @@ code for every wallet type: [`./x402-payments/SKILL.md`](./x402-payments/SKILL.m
 |---|---|---|
 | `400` | Malformed input (missing prompt / query / invalid contract address) | Payment cancels — not charged. Fix payload + retry |
 | `402` | Payment required (first request) | Sign + retry |
-| `402` verification failed | Signature doesn't cover `maxAmountRequired` or is invalid | Re-quote from a fresh 402, re-sign |
+| `402` verification failed | Signature doesn't cover `accepts[0].amount` or is invalid | Re-quote from a fresh 402, re-sign |
 | `404` | Lookup matched nothing (`cc0pedia`, `cc0pedia-market` by slug) | Payment cancels — you only pay for hits |
 | `425` | Payment tx not yet confirmed (`pay-and-invoke` human path only) | Retry with backoff |
 | `5xx` | Server / upstream / generation failure | Payment auto-cancels; retry once |

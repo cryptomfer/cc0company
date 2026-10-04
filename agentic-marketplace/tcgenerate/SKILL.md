@@ -40,8 +40,8 @@ yourself, and get no gallery attribution. The re-brokered endpoint costs a flat
 | `tcgenerate-random` | Generate a fully autofilled random collectible card (name, subject, action, background, art style) | **1.05 USDC** | image | none |
 
 Price = TCGenerate's upstream price + the flat **$0.005** cc0.company platform
-fee (1.00 + max(5%, 0.005) = 1.05). Never hard-code it — read `maxAmountRequired` from
-the live 402 challenge.
+fee (1.00 + max(5%, 0.005) = 1.05). Never hard-code it — read `accepts[0].amount` from
+the live 402 challenge (the `PAYMENT-REQUIRED` response header).
 
 > **Heads-up on cost.** This is a **dollar-scale** call, not a cents-scale one
 > like mfergpt or the LoRAs. Budget accordingly.

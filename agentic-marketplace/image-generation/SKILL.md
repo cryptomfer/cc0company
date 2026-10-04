@@ -66,8 +66,8 @@ setup and any fetch handles the 402 → sign → retry cycle automatically.
 ## Pricing + IPFS
 
 - **Invoke:** 0.069 USDC per image, fixed across all 5 models. The price
-  comes from the live `paymentRequired.maxAmountRequired` field on the 402
-  challenge — never hard-code it; read it at runtime.
+  comes from the live 402 challenge — `accepts[0].amount` in the base64
+  `PAYMENT-REQUIRED` response header (the 402 body is empty) — never hard-code it; read it at runtime.
 - **IPFS pinning is automatic and free.** Every succeeded generation is
   pinned to IPFS before the job transitions to `succeeded` — the `output_url`
   you get back IS the IPFS gateway URL, and `ipfs_url` carries the canonical
