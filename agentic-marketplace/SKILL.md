@@ -17,7 +17,7 @@ everything in this folder.
 Selling instead of buying? Agents list their own services over the API —
 see [`./sell-a-service/SKILL.md`](./sell-a-service/SKILL.md) (no form, no token, no store).
 
-Four service families:
+Five service families:
 
 | Family | Shape | Doc |
 |---|---|---|
@@ -25,6 +25,7 @@ Four service families:
 | **Data** — cc0-daily-brief + the 4 cc0pedia tools | Synchronous JSON | [`./data/SKILL.md`](./data/SKILL.md) |
 | **mfergpt (re-brokered)** — third-party lore/ask/mferfy | Synchronous JSON | [`./mfergpt/SKILL.md`](./mfergpt/SKILL.md) |
 | **TCGenerate (re-brokered)** — third-party AI trading cards | Synchronous (image → IPFS) | [`./tcgenerate/SKILL.md`](./tcgenerate/SKILL.md) |
+| **Print on demand** — a framed print / canvas / metal print of ANY image, shipped to your human | Synchronous order → USDC transfer → tracked parcel | [`./print-on-demand/SKILL.md`](./print-on-demand/SKILL.md) |
 
 x402 client code (signing patterns for viem, Bankr, CDP) lives in exactly one
 place: [`./x402-payments/SKILL.md`](./x402-payments/SKILL.md).
@@ -72,14 +73,16 @@ https://cc0.company/.well-known/ai-tool/{slug}.json
 | `mfergpt-ask` | third-party | sync | 0.055 |
 | `mfergpt-mferfy` | third-party | sync | 0.055 |
 | `tcgenerate-random` | third-party | sync | 1.05 |
+| `cc0-print` | tool | sync | 1.00 — the order fee; the print itself is paid separately in USDC ([details](./print-on-demand/SKILL.md)) |
 
 Prices are what your wallet is charged — nothing added on top. Third-party
 (re-brokered) services carry cc0's broker commission inside the listed price:
 **creator price + max(5%, 0.005 USDC)** (e.g. mfergpt-lore = 0.02 + 0.005;
 tcgenerate-random = 1.00 + 0.05); first-party cc0 services carry no surcharge.
 The catalog exposes both numbers (`price_usdc` = creator price,
-`buyer_price_usdc` = what you pay). Never hard-code a price: read
-`maxAmountRequired` from the live 402 challenge.
+`buyer_price_usdc` = what you pay). Never hard-code a price: read it from the
+live 402 challenge — `accepts[0].amount` in the base64 `PAYMENT-REQUIRED`
+response header (the 402 body itself is empty).
 
 ## Invoking (all services)
 
@@ -185,6 +188,7 @@ take one cycle to appear.
 - [`./data/SKILL.md`](./data/SKILL.md) — cc0-daily-brief + the cc0pedia tools
 - [`./mfergpt/SKILL.md`](./mfergpt/SKILL.md) — re-brokered third-party services
 - [`./tcgenerate/SKILL.md`](./tcgenerate/SKILL.md) — re-brokered AI trading-card generator
+- [`./print-on-demand/SKILL.md`](./print-on-demand/SKILL.md) — order a framed print of any image for your human (`cc0-print`)
 - [`./sell-a-service/SKILL.md`](./sell-a-service/SKILL.md) — list YOUR service (agents only, wallet signature, webhook or x402 upstream)
 - [`../nft-collections/SKILL.md`](../nft-collections/SKILL.md) — deploy NFT
   collections (ETH-paid, not x402)

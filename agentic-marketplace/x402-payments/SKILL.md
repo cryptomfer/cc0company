@@ -19,7 +19,10 @@ The x402-gated surface of cc0.company:
   `monet-gen`), the data services (`cc0-daily-brief`, `cc0pedia`,
   `cc0pedia-search`, `cc0pedia-verify`, `cc0pedia-market`), and the
   re-brokered mfergpt services (`mfergpt-lore`, `mfergpt-ask`,
-  `mfergpt-mferfy`). Prices per slug: [`../SKILL.md`](../SKILL.md).
+  `mfergpt-mferfy`), and `cc0-print` (print on demand — the 1 USDC order
+  fee; the print itself is a plain USDC transfer, see
+  [`../print-on-demand/SKILL.md`](../print-on-demand/SKILL.md)). Prices per
+  slug: [`../SKILL.md`](../SKILL.md).
 - `POST /api/store/agent-assets/{slug}/buy` — buy a listed CC0 asset from the
   x402 asset marketplace (price set per asset; response returns a signed
   `download_token`).
@@ -45,8 +48,12 @@ EIP-712 domain:    { name: "USD Coin", version: "2", chainId: 8453, verifyingCon
 Facilitator:       https://api.cdp.coinbase.com/platform/v2/x402 (Coinbase CDP)
 ```
 
-The `payTo` address and `maxAmountRequired` value come from the **live 402
-response** — never hard-code them.
+The `payTo` address and the `amount` come from the **live 402 response** —
+never hard-code them. On x402 v2 the 402 **body is empty (`{}`)**: the
+requirements travel in the `PAYMENT-REQUIRED` response header, base64 of
+`{ x402Version: 2, resource, accepts: [ { scheme, network, amount, asset, payTo,
+maxTimeoutSeconds, extra } ], extensions }`. (Older docs said
+`maxAmountRequired` in the body — that is the v1 shape.)
 
 ## Pattern A — `@x402/fetch` + viem (recommended, one-liner)
 
@@ -92,13 +99,15 @@ older `/agent/sign` is deprecated and returns HTML — make sure you hit the new
 path).
 
 ```bash
-# 1. Get the 402 challenge — read paymentRequired from the response body
-CHALLENGE=$(curl -s -X POST https://cc0.company/api/store/agent-services/sartoshi-gen/invoke \
+# 1. Get the 402 challenge — the requirements are in the PAYMENT-REQUIRED
+#    response HEADER (base64 JSON); the 402 body is empty.
+CHALLENGE=$(curl -s -D - -o /dev/null -X POST https://cc0.company/api/store/agent-services/sartoshi-gen/invoke \
   -H "Content-Type: application/json" \
-  -d '{"prompt": "..."}')
+  -d '{"prompt": "..."}' \
+  | grep -i '^payment-required:' | cut -d' ' -f2- | tr -d '\r' | base64 -d)
 
-PAY_TO=$(echo "$CHALLENGE" | jq -r '.paymentRequired.payTo')
-AMOUNT=$(echo "$CHALLENGE" | jq -r '.paymentRequired.maxAmountRequired')
+PAY_TO=$(echo "$CHALLENGE" | jq -r '.accepts[0].payTo')
+AMOUNT=$(echo "$CHALLENGE" | jq -r '.accepts[0].amount')
 USDC="0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"
 NONCE="0x$(openssl rand -hex 32)"
 VALID_BEFORE=$(( $(date +%s) + 600 ))
@@ -141,7 +150,7 @@ JSON
 # server matches it with deepEqual. The v1 path is broken in
 # @x402/core v2.12 (matcher reads paymentPayload.accepted.scheme but
 # v1 schema doesn't have an `accepted` field) — use v2 always.
-ACCEPTED=$(echo "$CHALLENGE" | jq -c '.accepts[0] // .paymentRequired')
+ACCEPTED=$(echo "$CHALLENGE" | jq -c '.accepts[0]')
 
 PAYLOAD=$(jq -nc \
   --arg sig "$SIG" --arg from "$FROM" --arg to "$PAY_TO" --arg val "$AMOUNT" \
