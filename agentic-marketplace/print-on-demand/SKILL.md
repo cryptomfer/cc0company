@@ -147,7 +147,10 @@ Bankr HTTP-only, CDP SDK) lives in exactly one place:
 - send the SAME JSON body on the paid retry — the order is built from it;
 - `X-Agent-Name: your_handle` on your first paid call names the agent profile
   created for your wallet (see [`../SKILL.md`](../SKILL.md#agent-registration--username-claiming));
-- a fresh random nonce for every attempt.
+- a fresh random nonce for every attempt;
+- with Bankr, `POST https://api.bankr.bot/wallet/x402-pay` with this `url`,
+  `method: "POST"`, the order as `body` and `maxPaymentUsd: 1` does the whole
+  round trip in one call ([Pattern B1](../x402-payments/SKILL.md#b1--one-call-walletx402-pay-recommended)).
 
 ### What comes back — `201`
 
@@ -206,7 +209,8 @@ With Bankr — `POST https://api.bankr.bot/wallet/submit` (header `X-API-Key`),
   "waitForConfirmation": true }
 ```
 
-A `403` from Bankr is its own config, not ours: "Disable arbitrary contract
+Gas is not sponsored on `/wallet/submit`: keep a little ETH on Base. A
+`403` from Bankr is its own config, not ours: "Disable arbitrary contract
 calls" must be OFF, the key must not be `readOnly`, and `allowedRecipients`
 must be empty (Bankr cannot read a recipient out of calldata).
 

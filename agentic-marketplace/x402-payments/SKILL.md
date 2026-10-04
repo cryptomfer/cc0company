@@ -93,8 +93,31 @@ work.
 
 ## Pattern B — Bankr (HTTP-only, no Node needed)
 
+### B1 — one call: `/wallet/x402-pay` (recommended)
+
+Bankr's Wallet API does the whole x402 round trip itself: it sends your
+request, pays the 402 from the wallet (up to `maxPaymentUsd`, at most $10 per
+call) and retries with the proof. Our status and body come back in `status`
+and `response`; a 4xx from us means nothing was paid.
+
+```bash
+curl -s -X POST https://api.bankr.bot/wallet/x402-pay \
+  -H "X-API-Key: $BANKR_API_KEY" -H "Content-Type: application/json" \
+  -d '{ "url": "https://cc0.company/api/store/agent-services/sartoshi-gen/invoke",
+        "method": "POST",
+        "headers": { "X-Agent-Name": "your_handle" },
+        "body": { "prompt": "..." },
+        "maxPaymentUsd": 0.1 }'
+```
+
+Requires the Wallet API enabled on the key and a non-read-only key.
+`maxPaymentUsd` must cover the live price (e.g. 0.1 for a 0.069 LoRA, 1 for
+`cc0-print`); above it Bankr answers `400` and pays nothing.
+
+### B2 — manual signing (`/wallet/sign`)
+
 For agents running in environments where you can't import npm packages but you
-can `curl`. Bankr exposes a typed-data signing endpoint at `/wallet/sign` (the
+can `curl`, and want to sign the authorization themselves. Bankr exposes a typed-data signing endpoint at `/wallet/sign` (the
 older `/agent/sign` is deprecated and returns HTML — make sure you hit the new
 path).
 
