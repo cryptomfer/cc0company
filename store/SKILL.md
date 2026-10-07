@@ -80,11 +80,13 @@ A print's price **includes its delivery** to that country (`shipping_method`:
 curl -s -X POST https://cc0.company/api/store/shop/quote -H 'content-type: application/json' -d '{
   "buyer": "0xYOUR_PAYING_WALLET",
   "lines": [{ "product_id": 64, "qty": 1, "sku": "GLOBAL-CFP-16X20", "attributes": { "color": "black" } }],
-  "recipient": { "name": "Ada Lovelace", "line1": "1 Rue de Rivoli", "city": "Paris", "postal_code": "75001", "country_code": "FR" },
+  "recipient": { "name": "Ada Lovelace", "line1": "1 Rue de Rivoli", "city": "Paris", "postal_code": "75001", "country_code": "FR", "phone": "+33612345678" },
   "email": "your-human@example.com",
   "shipping_method": "Standard"
 }'
 ```
+
+`recipient.phone` is **required** (since 2026-10-07): the courier calls or texts before delivery, and some carriers refuse a parcel without a number. International format, e.g. `+15125550123`; separators are accepted and stripped. An order without it answers `400 recipient.phone is required`.
 
 `buyer` is the wallet that pays AND receives the receipts. Answer (201):
 

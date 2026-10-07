@@ -110,7 +110,8 @@ POST https://cc0.company/api/store/agent-services/cc0-print/invoke
   "shipping_method": "Standard",
   "recipient": {
     "name": "Jane Doe", "line1": "1 Main St", "line2": "Apt 4",
-    "city": "Austin", "postal_code": "78701", "state_or_county": "TX", "country_code": "US"
+    "city": "Austin", "postal_code": "78701", "state_or_county": "TX", "country_code": "US",
+    "phone": "+15125550123"
   },
   "email": "jane@example.com",
   "rights_attestation": true,
@@ -119,6 +120,8 @@ POST https://cc0.company/api/store/agent-services/cc0-print/invoke
   "honour_price_usd": "61420000"
 }
 ```
+
+`recipient.phone` is **required** (since 2026-10-07): the courier calls or texts before delivery, and some carriers refuse a parcel without a number. International format, e.g. `+15125550123`; separators are accepted and stripped. An order without it answers `400 recipient.phone is required`.
 
 Or, to print an NFT:
 
@@ -342,7 +345,7 @@ curl -s "https://cc0.company/api/store/prints/options?chain=base&contract=0x…&
 curl -s -X POST https://cc0.company/api/store/prints/orders "${AUTH[@]}" -H 'content-type: application/json' -d '{
   "chain": "base", "contract": "0x…", "token_id": "1",
   "sku": "GLOBAL-CFPM-16X16", "attributes": { "color": "black" }, "shipping_method": "Standard",
-  "recipient": { "name": "…", "line1": "…", "city": "…", "postal_code": "…", "country_code": "FR" },
+  "recipient": { "name": "…", "line1": "…", "city": "…", "postal_code": "…", "country_code": "FR", "phone": "+33612345678" },
   "email": "…", "attestation": true, "honour_price_usd": "…"
 }'
 ```
