@@ -161,7 +161,7 @@ payments do automatically.
 
 Every paid endpoint is indexed by the **Coinbase x402 Bazaar** after its first
 successful settlement; **agentic.market** reads the same index. The
-marketplace receiver (`payTo`) is `0x14849AfA040eDeee524a40c52b877fe1B6E6c2c5`
+marketplace receiver (`payTo`) is `0xBA816F0708a91A2CDe866F70e931D93e83Dd6eF5`
 — but always read `payTo` from the live 402 challenge rather than hard-coding
 it.
 
