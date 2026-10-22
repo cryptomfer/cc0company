@@ -1,6 +1,6 @@
 ---
 name: cc0company-store
-version: 1.0.1
+version: 1.1.0
 description: Buy from the cc0 Store (store.cc0.company) as an AI agent — framed prints of public-domain art (every card of The Memes by 6529 and more) and objects made by cc0, paid in USDC on Base, shipped to your human. The store is fully onchain — catalogue, prices, stock, payment — and every article mints a soulbound receipt NFT to the paying wallet. Pay with raw calldata (approve + checkout) or over x402.
 homepage: https://store.cc0.company
 api_base: https://cc0.company/api
@@ -46,7 +46,9 @@ curl -s "https://cc0.company/api/store/shop/catalog?category=prints&q=gm&limit=1
 `products[]`: `id`, `slug`, `kind` (`print` | `physical`), `price_usdc` (`"0"` for a
 print — a print is priced per size and destination), `shipping_usdc` (physical,
 per unit), `stock` (`null` = unlimited), `art` (the artwork a print is made from:
-`chain`, `contract`, `token_id`), `name`, `description`, `image`, `thumb_url`.
+`chain`, `contract`, `token_id`), `pick_token`, `name`, `description`, `image`, `thumb_url`.
+`pick_token: true` (a collection of many artworks, e.g. Checks) means each line
+must name the piece with `token_id`; on every other print a `token_id` is refused.
 Sorts: `featured · newest · oldest · name · price_asc · price_desc · popular`.
 
 ## 2. A product — and a print's sizes
@@ -58,6 +60,12 @@ curl -s https://cc0.company/api/store/shop/products/65
 For a print, `print.sizes[]` lists ONLY the sizes its file can carry sharply
 (`sku`, `label`, `family_label`, `frames[]`, `frame_attribute`, `dpi`, `quality`);
 `print.best_sku` is the largest at full quality. A size not listed is refused.
+
+Two choices change WHICH sizes are offered, so ask for the list with them:
+`?orientation=portrait|landscape` (which way the frame hangs; absent = it follows
+the picture) and `?fill=1` (full bleed: the picture covers the frame, the overhang
+trimmed; absent = fitted, never cut). Pass the same `orientation` / `fill` on each
+line of the price and the quote.
 
 ## 3. The price (free, nothing stored)
 
@@ -74,6 +82,11 @@ A print's price **includes its delivery** to that country (`shipping_method`:
 (`duties_included: false`). Physical products add `shipping_usdc × qty`. A
 `discount_code` may be passed.
 
+The answer also splits the article from its delivery (2026-10-18), the way the
+store shows it to humans: per line `item_total_usdc` + `delivery_usdc`
+(= `line_total_usdc`), for the cart `items_usdc` + `delivery_usdc`, and
+`display.items` / `display.delivery`. What you pay is still the `total`.
+
 ## 4. The quote — the order, signed
 
 ```bash
@@ -88,7 +101,8 @@ curl -s -X POST https://cc0.company/api/store/shop/quote -H 'content-type: appli
 
 `recipient.phone` is **required** (since 2026-10-07): the courier calls or texts before delivery, and some carriers refuse a parcel without a number. International format, e.g. `+15125550123`; separators are accepted and stripped. An order without it answers `400 recipient.phone is required`.
 
-`buyer` is the wallet that pays AND receives the receipts. Answer (201):
+`buyer` is the wallet that pays AND receives the receipts. Gifts (`gift: { email, message }`)
+are paid by card on store.cc0.company only — an agent cannot send one (400). Answer (201):
 
 - `order` — `id`, `status: awaiting_payment`, `lines[]`, `total_usdc`, …
 - `access_token` — `cc0s_…`, opens this ONE order (header `X-Shop-Token`); also the
