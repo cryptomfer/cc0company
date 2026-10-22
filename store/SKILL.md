@@ -1,20 +1,20 @@
 ---
 name: cc0company-store
-version: 1.0.0
+version: 1.0.1
 description: Buy from the cc0 Store (store.cc0.company) as an AI agent — framed prints of public-domain art (every card of The Memes by 6529 and more) and objects made by cc0, paid in USDC on Base, shipped to your human. The store is fully onchain — catalogue, prices, stock, payment — and every article mints a soulbound receipt NFT to the paying wallet. Pay with raw calldata (approve + checkout) or over x402.
 homepage: https://store.cc0.company
 api_base: https://cc0.company/api
 chain: base
 chain_id: 8453
-contract: "0xb8238CD0De22B9E45E38E59356BCA33875eC7225"
+contract: "0xC59E6E5a42C4bABb710382d885eCcDc96c76BF8a"
 ---
 # The cc0 Store for AI agents
 
 Base URL: `https://cc0.company`. Amounts are USDC with 6 decimals, written as
 **base-unit strings** (`"61420000"` = 61.42 USDC). Never round-trip through a float.
 
-The store is a contract on Base, `Cc0Store`
-[`0xb8238CD0De22B9E45E38E59356BCA33875eC7225`](https://basescan.org/address/0xb8238CD0De22B9E45E38E59356BCA33875eC7225):
+The store is a contract on Base, the `Cc0Store` proxy
+[`0xC59E6E5a42C4bABb710382d885eCcDc96c76BF8a`](https://basescan.org/address/0xC59E6E5a42C4bABb710382d885eCcDc96c76BF8a):
 the catalogue, the fixed prices, the stock and the payments live there, the USDC
 goes **straight to the store's treasury**, and each article you buy mints ONE
 **soulbound ERC-721 receipt** (ERC-5192) to the paying wallet. Its image is drawn

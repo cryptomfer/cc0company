@@ -1,12 +1,12 @@
 ---
 name: cc0company-artworks
-version: 1.1.0
+version: 1.1.1
 description: Collect a $1 Patron Edition, place a bid, open or settle a 1/1 artwork auction on cc0.company from a wallet you control — Bankr, CDP, viem or a private key — given only the artwork's page link (https://cc0.company/art/<chain>/<contract>/<tokenId>). Covers the six launch chains (Base, Ethereum, Arbitrum One, BNB Chain, Arc, Robinhood Chain) plus Shape, four houses (cc0's own, networked.art's on Ethereum, Transient Labs' TLAuctionHouse — bid with the exact wei, buy now, settle — and BasePaint's daily open edition minted through BasePaintRewards with cc0 as referrer), the API that quotes the exact amount in wei, the raw calls, and how to confirm.
 homepage: https://cc0.company
 api_base: https://cc0.company/api
 page_pattern: https://cc0.company/{us/}art/<chain>/<contract>/<tokenId>
 houses: cc0 Auctions (per chain, see /api/store/artifacts/config) · NetworkedAuctions 0xaB48082d28049873ce54F672541D29779a3392Ef (Ethereum) · TLAuctionHouse 0x6f66b95a0c512f3497fb46660e0bc3b94b989f8d (Ethereum, Base, Arbitrum, Robinhood, Shape) · BasePaintRewards 0xaff1A9E200000061fC3283455d8B0C7e3e728161 (Base)
-referrer: 0x2a3353d225f47a77001BF7f08840bbFcF1d1dfc8
+referrer: 0xef00ADFC3CBc630F2901C6d9490943FA06b47bA1
 ---
 
 # cc0.company 1/1 Artworks — collect a Patron Edition or bid, from a page link
@@ -114,7 +114,7 @@ First read **which house the piece is in** — the branch decides everything:
 | `status: "ended"` | `settle(uint256 auctionId)` | 0 | Anyone, once the clock ran out: the winner receives the piece, the artist the proceeds. |
 | `status: "settled"` / no auction | — | — | Nothing to buy on-chain. |
 
-`referrer` — pass cc0's treasury `0x2a3353d225f47a77001BF7f08840bbFcF1d1dfc8`
+`referrer` — pass cc0's treasury `0xef00ADFC3CBc630F2901C6d9490943FA06b47bA1`
 (or the zero address); it never changes what you pay.
 
 Gas limits that always suffice: collect 190 000 · bid 140 000 · openAuction
@@ -303,7 +303,7 @@ block instead of an `auction`:
   "painting_ends_at": "…", "minting_ends_at": "2026-09-22T16:41:55.000Z",
   "contract": "0xba5e05cb26b78eda3a2f8e3b3814726305dcac83",
   "rewards_contract": "0xaff1a9e200000061fc3283455d8b0c7e3e728161",
-  "referrer": "0x2a3353d225f47a77001BF7f08840bbFcF1d1dfc8",
+  "referrer": "0xef00ADFC3CBc630F2901C6d9490943FA06b47bA1",
   "live_image": "https://basepaint.xyz/api/art/image?day=1139&scale=4"
 }
 ```
@@ -321,7 +321,7 @@ day formula, if you want it without the API:
 | `"closed"` | — | — | The sale is over — the day only trades on the secondary market now. |
 
 `sendRewardsTo` is the **referrer**, and cc0's treasury
-`0x2a3353d225f47a77001BF7f08840bbFcF1d1dfc8` is what the `edition` block
+`0xef00ADFC3CBc630F2901C6d9490943FA06b47bA1` is what the `edition` block
 hands you. Say it plainly: with that referrer **cc0 is credited 5 % of the
 mint value** by BasePaint's rewards contract (it does not change your price —
 it comes out of BasePaint's own split). Pass another address, or the zero

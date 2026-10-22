@@ -20,7 +20,7 @@ import { privateKeyToAccount } from "viem/accounts";
 import { base, mainnet, arbitrum, bsc, shape } from "viem/chains";
 
 const API = "https://cc0.company/api/store/art/tokens";
-const REFERRER = process.env.REFERRER || "0x2a3353d225f47a77001BF7f08840bbFcF1d1dfc8";
+const REFERRER = process.env.REFERRER || "0xef00ADFC3CBc630F2901C6d9490943FA06b47bA1";
 
 const CHAINS = {
   base: { id: 8453, coin: "ETH", rpc: "https://mainnet.base.org", chain: base },
