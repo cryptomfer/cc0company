@@ -1,11 +1,11 @@
 ---
 name: cc0company-artworks
-version: 1.1.1
-description: Collect a $1 Patron Edition, place a bid, open or settle a 1/1 artwork auction on cc0.company from a wallet you control — Bankr, CDP, viem or a private key — given only the artwork's page link (https://cc0.company/art/<chain>/<contract>/<tokenId>). Covers the six launch chains (Base, Ethereum, Arbitrum One, BNB Chain, Arc, Robinhood Chain) plus Shape, four houses (cc0's own, networked.art's on Ethereum, Transient Labs' TLAuctionHouse — bid with the exact wei, buy now, settle — and BasePaint's daily open edition minted through BasePaintRewards with cc0 as referrer), the API that quotes the exact amount in wei, the raw calls, and how to confirm.
+version: 1.2.0
+description: Collect a $1 Patron Edition, place a bid, open or settle a 1/1 artwork auction on cc0.company from a wallet you control — Bankr, CDP, viem or a private key — given only the artwork's page link (https://cc0.company/art/<chain>/<contract>/<tokenId>). Covers the six launch chains (Base, Ethereum, Arbitrum One, BNB Chain, Arc, Robinhood Chain) plus Shape, four houses (cc0's own, networked.art's on Ethereum, Transient Labs' TLAuctionHouse — bid with the exact wei, buy now, settle — BasePaint's daily open edition minted through BasePaintRewards with cc0 as referrer, and The Memes by 6529 cards minted through Manifold's claim contract with the allowlist proofs served by cc0), the API that quotes the exact amount in wei, the raw calls, and how to confirm.
 homepage: https://cc0.company
 api_base: https://cc0.company/api
 page_pattern: https://cc0.company/{us/}art/<chain>/<contract>/<tokenId>
-houses: cc0 Auctions (per chain, see /api/store/artifacts/config) · NetworkedAuctions 0xaB48082d28049873ce54F672541D29779a3392Ef (Ethereum) · TLAuctionHouse 0x6f66b95a0c512f3497fb46660e0bc3b94b989f8d (Ethereum, Base, Arbitrum, Robinhood, Shape) · BasePaintRewards 0xaff1A9E200000061fC3283455d8B0C7e3e728161 (Base)
+houses: cc0 Auctions (per chain, see /api/store/artifacts/config) · NetworkedAuctions 0xaB48082d28049873ce54F672541D29779a3392Ef (Ethereum) · TLAuctionHouse 0x6f66b95a0c512f3497fb46660e0bc3b94b989f8d (Ethereum, Base, Arbitrum, Robinhood, Shape) · BasePaintRewards 0xaff1A9E200000061fC3283455d8B0C7e3e728161 (Base) · Manifold ERC1155LazyPayableClaim 0x26BBEA7803DcAc346D5F5f135b57Cf2c752A02bE (Ethereum — The Memes by 6529)
 referrer: 0xef00ADFC3CBc630F2901C6d9490943FA06b47bA1
 ---
 
@@ -102,6 +102,7 @@ First read **which house the piece is in** — the branch decides everything:
 | The token says | House | Go to |
 |---|---|---|
 | `protocol: "basepaint"` (with an `edition` block) | BasePaint, on Base | § 7 — `mintLatest`, exact price × count |
+| contract `0x33fd…7af1` with a `memes` block | The Memes by 6529, on Ethereum | § 8 — `mintProxy` / `mint` / `mintBatch`, exact price × count |
 | `auction.house: "transient"` (or `protocol: "transient"`) | Transient Labs' `TLAuctionHouse` | § 6 — `bid` (exact), `buyNow`, `settleAuction` |
 | anything else with an `auction` | cc0's house, or networked.art's on Ethereum | the table below |
 | no `auction`, no `edition` | — | nothing to send on-chain |
@@ -341,6 +342,66 @@ const BASEPAINT_ABI = parseAbi([
 // the day's page on BasePaint: https://basepaint.xyz/canvas/N
 ```
 
+## 8. The Memes by 6529 — mint the card on sale
+
+[The Memes by 6529](https://6529.io/the-memes) drops a **CC0 card** on
+Monday, Wednesday and Friday. The cards live on
+`0x33FD426905F149f8376e227d0C9D3340AaD17aF1` (Ethereum, ERC-1155,
+`tokenId` = the card number), but you **never** mint there: a card is sold by
+Manifold's claim contract **`0x26BBEA7803DcAc346D5F5f135b57Cf2c752A02bE`**,
+the one 6529's own site uses, with `instanceId` = the card number. While a
+card is on sale, its token on cc0 carries a `memes` block:
+
+```json
+{
+  "card": 567, "status": "live",                 // upcoming | live | paused | sold_out | closed
+  "phase": "Phase 1", "public": false,            // Phase 0 · 1 · 2 = allowlists, then Public
+  "price_wei": "65980000000000000",               // ONE mint in this phase = cost + Manifold's fee
+  "cost_wei": "65290000000000000", "fee_wei": "690000000000000",
+  "minted": 156, "max": 328, "wallet_max": 0,
+  "starts_at": "…", "ends_at": "…",               // the CURRENT phase's window
+  "claim_contract": "0x26bbea7803dcac346d5f5f135b57cf2c752a02be",
+  "contract": "0x33fd426905f149f8376e227d0c9d3340aad17af1", "instance_id": "567"
+}
+```
+
+The phase is read from the chain, never assumed: 6529 rewrites the claim
+before each phase (only the current allowlist's Merkle root is on chain, a
+zero root means public). Between two phases `status` is `"paused"` for a few
+minutes. Ask what YOUR wallet can mint right now (no auth):
+
+```bash
+curl -s "https://cc0.company/api/store/art/memes/567/eligibility?wallet=0xYOU"
+# → { "mint": { …the block above… },
+#     "spots": [ { "index": 1003, "proof": ["0x9a74…", …] } ],   // allowlist phases only
+#     "eligible": true, "max_count": 1, "reason": null }        // reason: not_on_list · paused · no_sale…
+```
+
+Every proof is already folded to the live root and the spots you have used
+are removed. Then send, **from the wallet the spots belong to**:
+
+| Phase | Call on `0x26BB…02bE` | `value` |
+|---|---|---|
+| Public (`public: true`) | `mintProxy(address creatorContractAddress, uint256 instanceId, uint16 mintCount, uint32[] mintIndices, bytes32[][] merkleProofs, address mintFor)` with `mintIndices = []`, `merkleProofs = []`, `mintFor` = you | **`price_wei × mintCount` EXACTLY** |
+| Allowlist, one spot | `mint(address creatorContractAddress, uint256 instanceId, uint32 mintIndex, bytes32[] merkleProof, address mintFor)` with `mintFor` = you | **`price_wei` EXACTLY** |
+| Allowlist, several spots | `mintBatch(address creatorContractAddress, uint256 instanceId, uint16 mintCount, uint32[] mintIndices, bytes32[][] merkleProofs, address mintFor)` | **`price_wei × mintCount` EXACTLY** |
+
+`creatorContractAddress` is the Memes contract above. **No cushion**: an
+overpayment is kept by the contract, never refunded. Gas ≈ 115 000 (public)
+to 145 000 (allowlist) for one card. There is **no referral** on this
+contract: the cost goes to 6529, the fee to Manifold, nothing to cc0.
+Subscriptions (pre-paid cards airdropped by 6529) are 6529's own flow, on
+`6529.io`.
+
+```ts
+const MEMES_CLAIM_ABI = parseAbi([
+  "function mint(address creatorContractAddress, uint256 instanceId, uint32 mintIndex, bytes32[] merkleProof, address mintFor) payable",
+  "function mintBatch(address creatorContractAddress, uint256 instanceId, uint16 mintCount, uint32[] mintIndices, bytes32[][] merkleProofs, address mintFor) payable",
+  "function mintProxy(address creatorContractAddress, uint256 instanceId, uint16 mintCount, uint32[] mintIndices, bytes32[][] merkleProofs, address mintFor) payable",
+]);
+// read it yourself: getClaimForToken(address creatorContractAddress, uint256 tokenId) on the same contract
+```
+
 ## Reverts you may see
 
 ### cc0 / networked.art houses
@@ -377,6 +438,18 @@ const BASEPAINT_ABI = parseAbi([
 |---|---|---|
 | `"Minting is closed"` / a bare revert on `mintLatest` | the day rolled over — you are minting a day that is no longer `today() - 1` | re-read the token; only `status: "minting"` is mintable |
 | a revert on the value | `msg.value < openEditionPrice() × count` | re-read `price_wei` (the owner can change it) and send `price_wei × count` |
+
+### The Memes by 6529 (Manifold claim — names from its verified source)
+
+| Revert | Meaning | Do |
+|---|---|---|
+| `ClaimInactive()` | outside the phase window (between two phases, before the start, after the end) | re-read the eligibility; wait for the next phase |
+| `"Could not verify merkle proof"` | the phase changed under you (new root), or the spot is not this wallet's | re-read the eligibility and resend with the fresh spots, from the wallet they belong to |
+| `"Invalid delegate"` | an allowlist `mint` / `mintBatch` sent for another wallet (`mintFor`) without a delegate.cash delegation | send from the wallet the spot belongs to, `mintFor` = that wallet |
+| `"Already minted"` | that `mintIndex` was used | re-read — used spots are dropped |
+| `TooManyRequested()` / `"Maximum tokens already minted for this claim"` | `total + count > max` | sold out — nothing left |
+| `"Invalid amount"` | `value < price_wei × count` | send the exact figure from the block (a surplus is accepted and kept) |
+| `InvalidInput()` | arrays of different lengths, or `mintFor` ≠ sender on a public `mint` | use `mintProxy` in the public phase |
 
 ## What this is NOT
 
